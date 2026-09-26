@@ -1,1 +1,76 @@
+# Agentic EDA – Project Checklist
 
+Ground rule for every step: build → run ≥5× → measure → read traces → log (gain, cost, next step).
+
+## Step 0: Setup, first look, research question
+- [x] Docker, Ollama (qwen3:4b), venv, repo
+- [x] Smoke test runs (`exit: 0`)
+- [ ] Every group member has run the smoke test successfully
+- [ ] Set `OLLAMA_CONTEXT_LENGTH` (e.g. 16384) and note it in the README
+- [ ] Decide: qwen3 with or without thinking mode (`/no_think`)? Note it in the README
+- [ ] Create `docs/logbook.md`: date, what changed, result, decision
+- [ ] Profile with pandas: dtypes, missing values, min/max, 10 sample rows
+- [ ] Check known traps: time formats, `att_in` values, GOES classes as text, empty Earth coordinates, count distribution, spacecraft distance
+- [ ] Briefly describe the 16 columns missing from the data dictionary
+- [ ] Compute 10–20 ground-truth facts in code and save to `ground_truth.json`
+- [ ] Choose a research question (one of the 4 in the handout) and make it measurable
+- [ ] Check that the facts cover the research question; add more if needed
+
+## Step 1: Zero-shot baseline
+- [ ] Write the EDA task prompt (incl. "save plots to `/outputs/`")
+- [ ] `step1_baseline.py`: one LLM call → execute code → report
+- [ ] Run 5×
+- [ ] Read all traces and outputs; collect errors in a list (category, frequency)
+- [ ] Build an objective checker: compare report claims/numbers with `ground_truth.json`
+- [ ] First metrics: code runs (yes/no), share of correct facts, tokens, time
+- [ ] `analyze_runs.py`: read all traces, compute mean and spread per configuration
+- [ ] Log: what can the bare model do, and where does it fail?
+
+## Evaluation framework (build alongside Steps 1–2)
+- [ ] Define the 2×2 matrix with at least one metric per cell:
+  - [ ] objective per step (e.g. exit code)
+  - [ ] objective end-to-end (e.g. fact hit rate)
+  - [ ] subjective per step (e.g. plot quality)
+  - [ ] subjective end-to-end (e.g. report usefulness)
+- [ ] Write the judge prompt: criteria, scale, meaning of each score
+- [ ] Score 5–10 reports yourselves
+- [ ] Run the judge on the same reports, measure agreement, adjust the prompt until it matches
+
+## Step 2: Reflection (3 levels)
+- [ ] 2a: LLM critiques its own report and improves it → 5 runs, measure, compare with baseline
+- [ ] 2b: critique + artifacts (stdout, errors, plots) → 5 runs, measure, compare with 2a
+- [ ] 2c: critique + external feedback (checker script recomputes claimed numbers) → 5 runs, measure, compare with 2b
+- [ ] Table: quality vs. cost per level → log
+
+## Step 3: Tool use
+- [ ] Define and justify the tool set (e.g. `run_code`, `save_plot`, `write_file`, `check_fact`)
+- [ ] Pass tools to Ollama as function descriptions (tool schema)
+- [ ] 3a: tool calls without feedback → measure how often tools are called correctly
+- [ ] 3b: loop with feedback: error goes back to the LLM, it fixes the code itself, max N attempts
+- [ ] Test multiple tools in one turn
+- [ ] Measure: reliability per tool, recovery rate after errors, number of iterations
+- [ ] Experiment: increase the number of tools – when does it get worse?
+- [ ] Log
+
+## Step 4: Planning
+- [ ] LLM writes a plan (list of steps), first as free text
+- [ ] Variant with structured output (JSON) → compare
+- [ ] Execute the steps as a sequence of calls (using the tool loop from Step 3)
+- [ ] Check: does the plan cover the Step 0 traps? Is the plan followed?
+- [ ] 5 runs, measure, compare with the best system so far → log
+
+## Step 5: Multi-agent
+- [ ] Design roles before coding (e.g. data cleaner, analyst, visualizer, critic, domain expert using the papers)
+- [ ] Define tasks and tools per role
+- [ ] 5a: fixed linear hand-off → 5 runs, measure
+- [ ] 5b: manager agent decides who works next → 5 runs, measure
+- [ ] Compare with the best single-agent system (quality and cost)
+- [ ] Collect coordination failures from the traces → log
+
+## Step 6: Combine and conclude
+- [ ] Choose the best combination based on measurements and justify it
+- [ ] Run the final configuration several times and measure
+- [ ] Walk through one complete trace step by step and annotate it (exam practice)
+- [ ] Show remaining failures and how to spot them in the trace
+- [ ] Write report and presentation from the logbook
+- [ ] Submit: code, traces, generated code, report
