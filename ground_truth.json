@@ -1,4 +1,21 @@
 {
+  "n_flares": 33076,
+  "n_columns": 40,
+  "first_flare_start": "2021-02-14 01:41:06.670000",
+  "last_flare_start": "2026-02-28 22:01:02.764000",
+  "n_duplicate_rows": 0,
+  "n_att_in_true": 263,
+  "n_visible_from_earth": 15585,
+  "n_far_side": 15015,
+  "n_no_position": 2476,
+  "pct_far_side_of_located": 49.07,
+  "n_goes_class_missing": 620,
+  "median_duration_min": 12.93,
+  "max_duration_min": 2630.9,
+  "median_counts_4_10keV": 3199.0,
+  "max_counts_4_10keV": 27216076,
+  "min_distance_AU": 0.293,
+  "max_distance_AU": 1.015,
   "n_months": 61,
   "busiest_month": "2024-09",
   "busiest_month_count": 1724,
@@ -9,6 +26,12 @@
     "2024": 12330,
     "2025": 7662,
     "2026": 1134
+  },
+  "estimated_class_letter_counts": {
+    "C": 15779,
+    "B": 15660,
+    "M": 1503,
+    "X": 134
   },
   "n_strong_estimated_MX": 1637,
   "pct_strong_per_year": {
