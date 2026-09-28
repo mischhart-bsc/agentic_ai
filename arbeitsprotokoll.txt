@@ -6,15 +6,15 @@ Ground rule for every step: build → run ≥5× → measure → read traces →
 - [x] Docker, Ollama (qwen3:4b), venv, repo
 - [x] Smoke test runs (`exit: 0`)
 - [ ] Every group member has run the smoke test successfully
-- [ ] Set `OLLAMA_CONTEXT_LENGTH` (e.g. 16384) and note it in the README
-- [ ] Decide: qwen3 with or without thinking mode (`/no_think`)? Note it in the README
-- [ ] Create `docs/logbook.md`: date, what changed, result, decision
-- [ ] Profile with pandas: dtypes, missing values, min/max, 10 sample rows
+- [x] Set `OLLAMA_CONTEXT_LENGTH` (e.g. 16384) and note it in the README
+- [x] Decide: qwen3 with or without thinking mode (`/no_think`)? Note it in the README
+- [x] Create `docs/logbook.md`: date, what changed, result, decision
+- [x] Profile with pandas: dtypes, missing values, min/max, 10 sample rows
 - [ ] Check known traps: time formats, `att_in` values, GOES classes as text, empty Earth coordinates, count distribution, spacecraft distance
 - [ ] Briefly describe the 16 columns missing from the data dictionary
-- [ ] Compute 10–20 ground-truth facts in code and save to `ground_truth.json`
-- [ ] Choose a research question (one of the 4 in the handout) and make it measurable
-- [ ] Check that the facts cover the research question; add more if needed
+- [x] Compute 10–20 ground-truth facts in code and save to `ground_truth.json`
+- [x] Choose a research question (one of the 4 in the handout) and make it measurable
+- [x] Check that the facts cover the research question; add more if needed
 
 ## Step 1: Zero-shot baseline
 - [ ] Write the EDA task prompt (incl. "save plots to `/outputs/`")
