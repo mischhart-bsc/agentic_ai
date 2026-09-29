@@ -17,14 +17,14 @@ Ground rule for every step: build → run ≥5× → measure → read traces →
 - [x] Check that the facts cover the research question; add more if needed
 
 ## Step 1: Zero-shot baseline
-- [ ] Write the EDA task prompt (incl. "save plots to `/outputs/`")
-- [ ] `step1_baseline.py`: one LLM call → execute code → report
-- [ ] Run 5×
-- [ ] Read all traces and outputs; collect errors in a list (category, frequency)
-- [ ] Build an objective checker: compare report claims/numbers with `ground_truth.json`
-- [ ] First metrics: code runs (yes/no), share of correct facts, tokens, time
-- [ ] `analyze_runs.py`: read all traces, compute mean and spread per configuration
-- [ ] Log: what can the bare model do, and where does it fail?
+- [ ] Write the EDA task prompt (incl. "save plots to `/outputs/`")                       (mischa)
+- [ ] `step1_baseline.py`: one LLM call → execute code → reports                          (mischa)
+- [ ] Run 5×                                                                              (mischa)
+- [ ] Read all traces and outputs; collect errors in a list (category, frequency)         (jan)
+- [ ] Build an objective checker: compare report claims/numbers with `ground_truth.json`  (jan)
+- [ ] First metrics: code runs (yes/no), share of correct facts, tokens, time             (vanessa)
+- [ ] `analyze_runs.py`: read all traces, compute mean and spread per configuration       (vanessa)
+- [ ] Log: what can the bare model do, and where does it fail?                            (vanessa)
 
 ## Evaluation framework (build alongside Steps 1–2)
 - [ ] Define the 2×2 matrix with at least one metric per cell:
