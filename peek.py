@@ -8,7 +8,7 @@ from src.trace import Run
 
 prompt = (config.ROOT / "prompts" / "step1_baseline.txt").read_text(encoding="utf-8")
 run = Run("peek")
-answer = chat(run, [{"role": "user", "content": prompt + "\n/no_think"}], label="peek")
+answer = chat(run, [{"role": "user", "content": prompt}], label="peek")
 
 print("=" * 60)
 print(answer)

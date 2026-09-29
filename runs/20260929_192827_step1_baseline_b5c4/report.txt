@@ -1,0 +1,24 @@
+/code/step_002.py:25: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  df['date'] = pd.to_datetime(df[date_col])
+Traceback (most recent call last):
+  File "/code/step_002.py", line 25, in <module>
+    df['date'] = pd.to_datetime(df[date_col])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 1036, in to_datetime
+    cache_array = _maybe_cache(arg, format, cache, convert_listlike)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 254, in _maybe_cache
+    cache_dates = convert_listlike(unique_dates, format)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 437, in _convert_listlike_datetimes
+    result, tz_parsed = objects_to_datetime64(
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimes.py", line 2623, in objects_to_datetime64
+    result, tz_parsed = tslib.array_to_datetime(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/tslib.pyx", line 259, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 473, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 430, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslibs/conversion.pyx", line 658, in pandas._libs.tslibs.conversion.convert_str_to_tsobject
+  File "pandas/_libs/tslibs/parsing.pyx", line 296, in pandas._libs.tslibs.parsing.parse_datetime_string
+ValueError: Given date string "A" not likely a datetime

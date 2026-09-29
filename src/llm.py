@@ -10,7 +10,7 @@ def chat(run, messages, label="llm_call", **kw):
     t = timer()
     resp = client.chat.completions.create(
         model=config.MODEL, messages=messages,
-        temperature=config.TEMPERATURE, **kw)
+        temperature=config.TEMPERATURE, max_tokens=4000, **kw)
     text = resp.choices[0].message.content or ""
     run.log("llm", label=label, model=config.MODEL, seconds=t(),
             prompt_tokens=resp.usage.prompt_tokens,

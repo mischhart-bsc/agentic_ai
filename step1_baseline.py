@@ -25,7 +25,7 @@ def extract_code(text):
 def one_run(i):
     run = Run("step1_baseline")
     try:
-        answer = chat(run, [{"role": "user", "content": PROMPT + "\n/no_think"}], label="generate")
+        answer = chat(run, [{"role": "user", "content": PROMPT}], label="generate")
     except Exception as e:
         # LLM-Call gescheitert (Timeout, Verbindung weg, ...): im Trace festhalten und weiter
         run.log("error", label="generate", error_type=type(e).__name__, error=str(e))
