@@ -16,7 +16,7 @@ PROMPT = (config.ROOT / "prompts" / "step1_baseline.txt").read_text(encoding="ut
 
 def extract_code(text):
     """Take the first ```python block; fall back to any ``` block; else None"""
-    text = re.sub(r"<think>.*?<think>", "", text, flags=re.S)
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
     m = re.search(r"```python\s*\n(.*?)```", text, re.S)
     if m:
         return m.group(1)
@@ -24,7 +24,24 @@ def extract_code(text):
 
 def one_run(i):
     run = Run("step1_baseline")
-    answer = chat(run, [{"role": "user", "content": PROMPT + "\n/no_think"}], label="generate")
+    try:
+        answer = chat(run, [{"role": "user", "content": PROMPT + "\n/no_think"}], label="generate")
+    except Exception as e:
+        # LLM-Call gescheitert (Timeout, Verbindung weg, ...): im Trace festhalten und weiter
+        run.log("error", label="generate", error_type=type(e).__name__, error=str(e))
+        summary = {
+            "config": "step1_baseline",
+            "llm_error": type(e).__name__,
+            "code_found": False,
+            "exit_code": None,
+            "results_json_found": False,
+            "checks": check(None),
+            "fact_score": 0.0,
+            "n_plots": 0,
+        }
+        run.log("result", **summary)
+        print(f"[{i}] {run.run_id}  LLM-Fehler: {type(e).__name__}: {e}")
+        return summary
 
     code = extract_code(answer)
     if code is None:

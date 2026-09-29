@@ -3,7 +3,7 @@ from openai import OpenAI
 import config
 from src.trace import timer
 
-client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama")  # Key wird ignoriert
+client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=900, max_retries=0)  # Key wird ignoriert
 
 
 def chat(run, messages, label="llm_call", **kw):
