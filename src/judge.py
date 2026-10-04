@@ -90,7 +90,7 @@ def build_messages(report):
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def parse_scores(text):
+def parse_scores(text, criteria=CRITERIA):
     m = re.search(r"\{.*\}", text or "", re.S)
     if not m:
         return None
@@ -99,7 +99,7 @@ def parse_scores(text):
     except json.JSONDecodeError:
         return None
     out = {}
-    for c in CRITERIA:
+    for c in criteria:
         try:
             v = int(data.get(c))
         except (TypeError, ValueError):

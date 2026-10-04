@@ -5,6 +5,7 @@ Run:  python evaluate_reports.py                     alle Runs in runs/, Zusamme
       python evaluate_reports.py --run <run_id>      ein Run, alle Einzelmetriken
       python evaluate_reports.py --config step1_schema
       python evaluate_reports.py --judge             zusaetzlich LLM-Judge (braucht Ollama)
+      python evaluate_reports.py --judge-code        LLM-Judge auf den generierten Code (braucht Ollama)
       python evaluate_reports.py --human-template    Vorlage human_scores.csv zum Selbstbewerten
       python evaluate_reports.py --agreement         Mensch vs. Judge vergleichen
 
@@ -70,6 +71,9 @@ def summarize(name, evs, details=False):
     js = [e["judge"]["score_0_1"] for e in evs if (e.get("judge") or {}).get("score_0_1") is not None]
     if js:
         print(f"  {'judge (0-1)':<13} {stats(js)}   (n={len(js)})")
+    jc = [e["judge_code"]["score_0_1"] for e in evs if (e.get("judge_code") or {}).get("score_0_1") is not None]
+    if jc:
+        print(f"  {'code judge':<13} {stats(jc)}   (n={len(jc)})")
 
     flags = Counter(f.split(":")[0] if f.startswith("Absturz") else f for e in evs for f in e["flags"])
     print("  Haeufigste Flags:")
@@ -112,6 +116,7 @@ if __name__ == "__main__":
     ap.add_argument("--config", help="nur diese Config, z.B. step1_schema")
     ap.add_argument("--details", action="store_true", help="eine Zeile pro Run")
     ap.add_argument("--judge", action="store_true", help="LLM-Judge zusaetzlich ausfuehren (Ollama)")
+    ap.add_argument("--judge-code", action="store_true", help="LLM judge on the generated code (Ollama)")
     ap.add_argument("--human-template", action="store_true", help="human_scores.csv anlegen")
     ap.add_argument("--agreement", action="store_true", help="human_scores.csv mit judge.json vergleichen")
     args = ap.parse_args()
@@ -138,6 +143,12 @@ if __name__ == "__main__":
             ev["judge"] = judge_report(d, ev["report_text"])
         elif (d / "judge.json").exists():
             ev["judge"] = json.loads((d / "judge.json").read_text(encoding="utf-8"))
+        if args.judge_code:                      # rates the code, so it also works for crashed runs
+            from src.judge_code import judge_code
+            print(f"Code judge: {d.name} ...")
+            ev["judge_code"] = judge_code(d)
+        elif (d / "judge_code.json").exists():
+            ev["judge_code"] = json.loads((d / "judge_code.json").read_text(encoding="utf-8"))
         (d / "evaluation.json").write_text(json.dumps(ev, indent=2, ensure_ascii=False, default=str),
                                            encoding="utf-8")
         evs.append(ev)
