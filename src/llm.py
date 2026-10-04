@@ -15,5 +15,6 @@ def chat(run, messages, label="llm_call", **kw):
     run.log("llm", label=label, model=config.MODEL, seconds=t(),
             prompt_tokens=resp.usage.prompt_tokens,
             completion_tokens=resp.usage.completion_tokens,
+            finish_reason=resp.choices[0].finish_reason,
             messages=messages, response=text)
     return text

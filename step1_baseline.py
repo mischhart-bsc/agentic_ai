@@ -5,14 +5,22 @@ Run:  python step1_baseline.py            (5 runs)
 """
 import argparse
 import re
+import pandas as pd
 
 import config
-from src.checker import check, extract_results, score
+from src.checker import check, extract_results, score, strict_json_ok, report_precision
 from src.llm import chat
 from src.runner import run_code
 from src.trace import Run
 
 PROMPT = (config.ROOT / "prompts" / "step1_baseline.txt").read_text(encoding="utf-8")
+
+def data_schema(n_rows=3):
+    """Spaltennamen, dtypes und ein paar Beispielzeilen fuer den Prompt."""
+    df = pd.read_csv(config.DATA_DIR / config.DATA_FILE, low_memory=False, nrows=1000)
+    cols = "\n".join(f"- {c} ({t})" for c, t in df.dtypes.astype(str).items())
+    sample = df.drop(columns=["cpd_filename"]).head(n_rows).to_csv(index=False)
+    return f"\nColumns (name and dtype):\n{cols}\n\nFirst {n_rows} rows (CSV):\n{sample}"
 
 def extract_code(text):
     """Take the first ```python block; fall back to any ``` block; else None"""
@@ -22,15 +30,17 @@ def extract_code(text):
         return m.group(1)
     return None
 
-def one_run(i):
-    run = Run("step1_baseline")
+def one_run(i, use_schema=False):
+    cfg = "step1_schema" if use_schema else "step1_baseline"
+    prompt = PROMPT.replace("{SCHEMA}", data_schema() if use_schema else "")
+    run = Run(cfg)
     try:
-        answer = chat(run, [{"role": "user", "content": PROMPT}], label="generate")
+        answer = chat(run, [{"role": "user", "content": prompt}], label="generate")
     except Exception as e:
         # LLM-Call gescheitert (Timeout, Verbindung weg, ...): im Trace festhalten und weiter
         run.log("error", label="generate", error_type=type(e).__name__, error=str(e))
         summary = {
-            "config": "step1_baseline",
+            "config": cfg,
             "llm_error": type(e).__name__,
             "code_found": False,
             "exit_code": None,
@@ -52,10 +62,12 @@ def one_run(i):
     results = extract_results(res["stdout"])
     checks = check(results)
     summary = {
-        "config": "step1_baseline",
+        "config": cfg,
         "code_found": code is not None,
         "exit_code": res["exit_code"],
         "results_json_found": results is not None,
+        "results_json_strict": strict_json_ok(res["stdout"]),
+        "report_precision": report_precision(res["stdout"]),
         "checks": checks,
         "fact_score": score(checks),
         "n_plots": len(list((run.dir / "outputs").glob("*.png"))),
@@ -71,7 +83,8 @@ def one_run(i):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=5)
-    n = ap.parse_args().runs
-    for i in range(1, n + 1):
-        one_run(i)
+    ap.add_argument("--schema", action="store_true", help="Spalten + Beispielzeilen in den Prompt")
+    args = ap.parse_args()
+    for i in range(1, args.runs + 1):
+        one_run(i, use_schema=args.schema)
     print("\nNext: python analyze_runs.py   (and READ the traces in runs/)")
