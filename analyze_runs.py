@@ -33,7 +33,9 @@ def load_runs():
             "result": result,
             "llm_calls": len(llm),
             "llm_seconds": sum(e.get("seconds") or 0 for e in llm),
+            "prompt_tokens": sum(e.get("prompt_tokens") or 0 for e in llm),
             "completion_tokens": sum(e.get("completion_tokens") or 0 for e in llm),
+            "exec_seconds": sum(e.get("seconds") or 0 for e in execs),
             "exec_calls": len(execs),
             "truncated": any(e.get("finish_reason") == "length" for e in llm),
             "errors": [e for e in entries if e["kind"] == "error"],
@@ -54,6 +56,16 @@ def summarize(name, runs, details=False):
     print(f"  LLM errors          : {n - len(ok_llm)}"
           + (f"  ({', '.join(sorted({r['result']['llm_error'] for r in runs if r['result'].get('llm_error')}))})"
              if len(ok_llm) < n else ""))
+    # funnel: a run only counts on a stage if it passed all stages before it
+    stages = [("code found", lambda r: bool(r.get("code_found"))),
+              ("exit 0", lambda r: r.get("exit_code") == 0),
+              ("RESULTS_JSON", lambda r: bool(r.get("results_json_found"))),
+              ("any fact right", lambda r: r.get("fact_score", 0.0) > 0)]
+    alive, counts = list(res), []
+    for _, ok in stages:
+        alive = [r for r in alive if ok(r)]
+        counts.append(len(alive))
+    print("  funnel              : " + " -> ".join(f"{name} {c}/{n}" for (name, _), c in zip(stages, counts)))
     print(f"  code found          : {pct(sum(bool(r.get('code_found')) for r in res), n)}")
     print(f"  truncated (max_tokens): {pct(sum(r.get('truncated', False) for r in runs), n)}")
     print(f"  exit code 0         : {pct(sum(r.get('exit_code') == 0 for r in res), n)}")
@@ -83,6 +95,9 @@ def summarize(name, runs, details=False):
     if ok_llm:
         print(f"  LLM time per run    : mean {mean(r['llm_seconds'] for r in ok_llm):.0f}s   "
               f"max {max(r['llm_seconds'] for r in ok_llm):.0f}s")
+        print(f"  exec time per run   : mean {mean(r['exec_seconds'] for r in ok_llm):.0f}s   "
+              f"total per run: mean {mean(r['llm_seconds'] + r['exec_seconds'] for r in ok_llm):.0f}s")
+        print(f"  prompt tokens       : mean {mean(r['prompt_tokens'] for r in ok_llm):.0f}")
         print(f"  completion tokens   : mean {mean(r['completion_tokens'] for r in ok_llm):.0f}")
         print(f"  LLM calls per run   : mean {mean(r['llm_calls'] for r in ok_llm):.1f}   "
               f"exec calls per run: mean {mean(r['exec_calls'] for r in ok_llm):.1f}")
