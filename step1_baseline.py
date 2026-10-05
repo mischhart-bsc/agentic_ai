@@ -11,8 +11,10 @@ from src.checker import check, extract_results, score
 from src.llm import chat
 from src.runner import run_code
 from src.trace import Run
+from src.schema import data_schema
 
 PROMPT = (config.ROOT / "prompts" / "step1_baseline.txt").read_text(encoding="utf-8")
+PROMPT = PROMPT.replace("<<SCHEMA>>", data_schema())
 
 def extract_code(text):
     """Take the first ```python block; fall back to any ``` block; else None"""

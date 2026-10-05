@@ -1,6 +1,8 @@
 You are a data analyst. Write ONE complete Python script that performs an exploratory data analysis.
 
 Data: a CSV file at /data/stix_flarelist.csv (solar flares observed by the STIX X-ray telescope on Solar Orbiter).
+Schema of the CSV:
+<<SCHEMA>>
 
 Research question:
 How did the monthly number of flares evolve between February 2021 and February 2026,
