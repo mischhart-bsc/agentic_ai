@@ -5,24 +5,15 @@ Run:  python step1_baseline.py            (5 runs)
 """
 import argparse
 import re
-import pandas as pd
 
 import config
 from src.checker import check, extract_results, score, strict_json_ok, report_precision
 from src.llm import chat
 from src.runner import run_code
-from src.trace import Run
 from src.schema import data_schema
+from src.trace import Run
 
 PROMPT = (config.ROOT / "prompts" / "step1_baseline.txt").read_text(encoding="utf-8")
-PROMPT = PROMPT.replace("<<SCHEMA>>", data_schema())
-
-def data_schema(n_rows=3):
-    """Spaltennamen, dtypes und ein paar Beispielzeilen fuer den Prompt."""
-    df = pd.read_csv(config.DATA_DIR / config.DATA_FILE, low_memory=False, nrows=1000)
-    cols = "\n".join(f"- {c} ({t})" for c, t in df.dtypes.astype(str).items())
-    sample = df.drop(columns=["cpd_filename"]).head(n_rows).to_csv(index=False)
-    return f"\nColumns (name and dtype):\n{cols}\n\nFirst {n_rows} rows (CSV):\n{sample}"
 
 def extract_code(text):
     """Take the first ```python block; fall back to any ``` block; else None"""
