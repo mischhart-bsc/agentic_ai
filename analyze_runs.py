@@ -35,6 +35,7 @@ def load_runs():
             "llm_seconds": sum(e.get("seconds") or 0 for e in llm),
             "completion_tokens": sum(e.get("completion_tokens") or 0 for e in llm),
             "exec_calls": len(execs),
+            "truncated": any(e.get("finish_reason") == "length" for e in llm),
             "errors": [e for e in entries if e["kind"] == "error"],
         })
     return runs
@@ -54,8 +55,12 @@ def summarize(name, runs, details=False):
           + (f"  ({', '.join(sorted({r['result']['llm_error'] for r in runs if r['result'].get('llm_error')}))})"
              if len(ok_llm) < n else ""))
     print(f"  code found          : {pct(sum(bool(r.get('code_found')) for r in res), n)}")
+    print(f"  truncated (max_tokens): {pct(sum(r.get('truncated', False) for r in runs), n)}")
     print(f"  exit code 0         : {pct(sum(r.get('exit_code') == 0 for r in res), n)}")
     print(f"  RESULTS_JSON found  : {pct(sum(bool(r.get('results_json_found')) for r in res), n)}")
+    print(f"  RESULTS_JSON strict : {pct(sum(bool(r.get('results_json_strict')) for r in res), n)}")
+    rp = [r.get("report_precision") for r in res if r.get("report_precision") is not None]
+    print(f"  report precision    : {mean(rp):.0%} (n={len(rp)})" if rp else "  report precision    : -")
     print(f"  plots (mean)        : {mean(r.get('n_plots', 0) for r in res):.1f}")
 
     scores = [r.get("fact_score", 0.0) for r in res]

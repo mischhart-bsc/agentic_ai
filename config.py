@@ -4,8 +4,7 @@ from pathlib import Path
 # --- LLM (Ollama) ---
 OLLAMA_URL = "http://localhost:11434/v1"   # OpenAI-compatible Endpoint of Ollama
 MODEL = "qwen3-4b-instruct-16k"
-TEMPERATURE = 0.2
-LLM_MAX_SECONDS = 600                       # hard wall-clock limit per LLM call
+TEMPERATURE = 0.7
 
 # --- Sandbox (Docker) ---
 DOCKER_IMAGE = "agai-sandbox"
