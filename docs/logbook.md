@@ -50,3 +50,4 @@ solved by Mischa using `qwen3:4b-instruct`
 - **2×2 matrix:** objective per step = execution, method · objective end-to-end =
   correctness, completeness · subjective = LLM judge (rubric with 5 criteria, scale 1–5),
   prepared but will be used in a later step.
+D-x: Data context. All configurations get the same neutral schema (column names, dtypes, 3 sample rows, generated automatically), without the trap notes. Rationale: a blind prompt tests only guessing column names (observed in run …_b5c4: wrong time column, silent "all strong" fallback, hard-coded findings → 0%) and would confound the later comparisons (information vs. mechanism). The blind variant is documented only as the lower bound (1a).
