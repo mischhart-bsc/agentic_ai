@@ -4,8 +4,8 @@ Data: a CSV file at /data/stix_flarelist.csv (solar flares observed by the STIX 
 {SCHEMA}
 
 Research question:
-How did the monthly number of flares (counted by start_UTC) evolve from February 2021 up to and including February 2026
-(use all rows of the file), and did the share of strong flares (GOES class M or X) change over the years?
+How did the monthly number of flares evolve from February 2021 up to and including February 2026
+(use all rows of the file), and did the share of strong flares change over the years?
 
 Requirements:
 - Use pandas, numpy and matplotlib only.
