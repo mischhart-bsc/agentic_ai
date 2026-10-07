@@ -1,0 +1,67 @@
+{
+  "run_id": "20261005_151055_step1_schema_fe8c",
+  "config": "step1_schema",
+  "overall": 0.0,
+  "dimensions": {
+    "execution": 0.0,
+    "completeness": 0.0,
+    "correctness": 0.0,
+    "method": null,
+    "plots": 0.0
+  },
+  "flags": [
+    "kein Code-Block",
+    "RESULTS_JSON fehlt/unlesbar",
+    "kein Report-Text",
+    "keine Plots"
+  ],
+  "details": {
+    "execution": {
+      "code_found": false,
+      "exit_ok": false,
+      "progress": 0.0,
+      "truncated": false
+    },
+    "completeness": {
+      "json_present": false,
+      "json_strict": false,
+      "json_keys": 0.0,
+      "n_sentences": 0,
+      "length_ok": 0.0,
+      "topics": {
+        "monthly_evolution": false,
+        "busiest_month": false,
+        "yearly_counts": false,
+        "strong_share": false,
+        "trend_answer": false,
+        "data_caveat": false
+      },
+      "topic_coverage": 0.0,
+      "n_plots": 0,
+      "plots_present": 0.0
+    },
+    "correctness": {
+      "checks": {
+        "n_months": false,
+        "busiest_month": false,
+        "busiest_month_count": false,
+        "flares_per_year": false,
+        "n_strong": false,
+        "pct_strong_per_year": false,
+        "strong_share_increasing": false
+      },
+      "fact_score": 0.0,
+      "text_numbers": 0,
+      "text_precision": null,
+      "text_json_consistency": null,
+      "claims": {},
+      "claims_score": null
+    },
+    "method": {},
+    "plots": {
+      "n_plots": 0,
+      "files": []
+    }
+  },
+  "report_text": ""
+}
