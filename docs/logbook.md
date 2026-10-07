@@ -51,3 +51,36 @@ solved by Mischa using `qwen3:4b-instruct`
 - **2×2 matrix:** objective per step = execution, method · objective end-to-end =
   correctness, completeness · subjective = LLM judge (rubric with 5 criteria, scale 1–5),
   prepared but will be used in a later step.
+
+## 2026-10-07 – Step 2a: Reflection alone
+
+### 6. Setup
+- `step2_reflection.py`: generate -> critique -> revise, revised code is executed once.
+  Prompts in `prompts/step2a_critique.txt` and `step2a_revise.txt`.
+- The model never sees a run result (that is 2b). Code v1 is kept as a file but not executed.
+- The critique prompt is deliberately generic (no hints about columns or types); concrete hints
+  would measure hints, not reflection.
+
+### 7. Result (schema mode, 5 baseline runs vs. 5 complete 2a runs, all from 2026-10-07)
+
+| | baseline | 2a |
+|---|---|---|
+| exit 0 / facts right | 0/5 / 0 % | 0/5 / 0 % |
+| LLM calls per run | 1 | 3 |
+| tokens per run (prompt + completion) | ca. 2,600 | ca. 12,200 (4.7x) |
+
+- Funnel does not move: every run still fails at "exit 0". One further 2a run ended in a timeout.
+- Failures, baseline: `int64 not JSON serializable` 3/5, KeyError 1/5, ValueError 1/5.
+  2a: `int64` 1/5, plus KeyError, ValueError, DateParseError, Period-TypeError (5 different crashes).
+- The critique is long but generic ("no leap-year handling"); it named none of the actual crash causes
+  and not the hard-coded report text. Revising fixed some errors and introduced others.
+- Seconds are not comparable with 2026-10-04 (machine was about 4x slower today, even for the
+  unchanged generate step); tokens are the reliable cost measure.
+- Mixed groups in `analyze_runs.py` (old prompts, 5 runs with AttributeError, timeouts) made
+  per-config means unusable; the numbers above filter to 2026-10-07 only.
+
+### 8. Decision
+Reflection without feedback only swaps one error for another at 4.7x the tokens.
+Most frequent baseline error (`int64` in `json.dumps`) is trivial to fix with an error message,
+so it is the test case for 2b (critique + stdout/stderr). Open: bundle runs per experiment
+(folder per experiment) so groups stay clean.
