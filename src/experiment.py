@@ -44,15 +44,15 @@ def parse_seeds(text):
 
 # turns a prompt into a short fingerprint
 def sha(text):
-    return "sha265:" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
 def git_info():
     def git(*args):
         try:
-            return subprocess.run(["git", "args"], cwd=config.ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
+            return subprocess.run(["git", *args], cwd=config.ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
         except (OSError, subprocess.TimeoutExpired):
             return None
-    commit = git("rev-parse", "-short", "HEAD")
+    commit = git("rev-parse", "--short", "HEAD")
     # generated code inside runs/ and experiments/ is data, not project code
     status = git("status", "--porcelain", "--", "*.py", "prompts", ":(exclude)runs", ":(exclude)experiments")
     return {"git_commit": commit or None, "git_dirty": bool(status) if status is not None else None}
@@ -103,8 +103,7 @@ class Experiment:
             "max_tokens": config.MAX_TOKENS,
             "llm_max_seconds": config.LLM_MAX_SECONDS,
             "prompts": {name: sha(text) for name, text in prompts.items()},
-            "git_commit": None,
-            "git_dirty": None,
+            **git_info(),
             "machine": machine(),
             "started": datetime.now().isoformat(timespec="seconds"),
             "finished": None,
@@ -131,7 +130,7 @@ class Experiment:
         if old.get("git_commit") != self.manifest["git_commit"]:
             print(f"Warning: '{self.id}' was started on commit {old.get("git_commit")}, "
                   f" now {self.manifest["git_commit"]}")
-        new_seeds = [s for s in self.manigest["seeds"] if s not in old["seeds"]]
+        new_seeds = [s for s in self.manifest["seeds"] if s not in old["seeds"]]
         self.manifest = {**old,"seeds": old["seeds"] + new_seeds, "status":"running", "finished":None}
         self._write()
 
