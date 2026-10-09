@@ -1,0 +1,29 @@
+{
+  "id": "E01_baseline_schema",
+  "level": "baseline",
+  "base": null,
+  "note": "first baseline on experiment structure",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "data_context": "schema",
+  "model": "qwen3-4b-instruct-16k",
+  "model_digest": "8b939f12b0f9",
+  "temperature": 0.7,
+  "max_tokens": 4000,
+  "llm_max_seconds": 600,
+  "prompts": {
+    "generate": "sha256:df6f329aee66",
+    "schema": "sha256:b445db2c809c"
+  },
+  "git_commit": "78f9598",
+  "git_dirty": false,
+  "machine": "Surface-Mischa (Windows, 12 CPUs)",
+  "started": "2026-10-09T16:13:09",
+  "finished": "2026-10-09T16:43:36",
+  "status": "complete"
+}

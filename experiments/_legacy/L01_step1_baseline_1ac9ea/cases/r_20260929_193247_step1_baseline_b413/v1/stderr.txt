@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/code/step_002.py", line 18, in <module>
+    raise ValueError("Date column 'date' not found in CSV file.")
+ValueError: Date column 'date' not found in CSV file.

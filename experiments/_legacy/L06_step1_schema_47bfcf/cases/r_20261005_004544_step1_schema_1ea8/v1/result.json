@@ -1,0 +1,36 @@
+{
+  "experiment": "L06_step1_schema_47bfcf",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "AttributeError",
+  "error_category": "datetime_type",
+  "error_message": "AttributeError: Can only use .dt accessor with datetimelike values. Did you mean: 'at'?",
+  "error_line": 52,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1859,
+    "completion_tokens": 1363,
+    "llm_seconds": 78.9,
+    "exec_seconds": 2.4,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261005_004544_step1_schema_1ea8"
+}

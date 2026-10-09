@@ -1,0 +1,36 @@
+{
+  "experiment": "L06_step1_schema_47bfcf",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 0,
+  "error_type": null,
+  "error_category": null,
+  "error_message": null,
+  "error_line": null,
+  "results_json_found": true,
+  "results_json_strict": true,
+  "report_precision": 0.0,
+  "checks": {
+    "n_months": true,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": true
+  },
+  "fact_score": 0.286,
+  "n_plots": 2,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1859,
+    "completion_tokens": 1367,
+    "llm_seconds": 75.7,
+    "exec_seconds": 3.7,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261005_004814_step1_schema_b3e3"
+}

@@ -1,0 +1,36 @@
+{
+  "experiment": "L00_invalid",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": "AttributeError",
+  "code_found": false,
+  "exit_code": null,
+  "error_type": "AttributeError",
+  "error_category": "llm_error",
+  "error_message": null,
+  "error_line": null,
+  "results_json_found": false,
+  "results_json_strict": null,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 0,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_seconds": 0,
+    "exec_seconds": 0,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261005_151057_step1_schema_07e7"
+}

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/code/step_004.py", line 138, in <module>
+    "pct_strong_per_year": dict(zip(yearly_strong_pct.index, yearly_strong_pct['pct_strong'].round(2))) if len(yearly_strong_pct) > 0 else {},
+                                                             ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/series.py", line 959, in __getitem__
+    return self._get_value(key)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/series.py", line 1046, in _get_value
+    loc = self.index.get_loc(label)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/indexes/range.py", line 535, in get_loc
+    raise KeyError(key)
+KeyError: 'pct_strong'

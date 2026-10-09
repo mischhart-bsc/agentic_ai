@@ -1,0 +1,35 @@
+{
+  "experiment": "E01_baseline_schema",
+  "seed": 101,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "json_serialize",
+  "error_message": "TypeError: Object of type int64 is not JSON serializable",
+  "error_line": 123,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": 0.5,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 2,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1347,
+    "completion_tokens": 1508,
+    "llm_seconds": 403.7,
+    "exec_seconds": 7.3,
+    "truncated": false
+  }
+}

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/code/step_002.py", line 65, in <module>
+    busiest_month_str = busiest_month.start
+                        ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Period' object has no attribute 'start'

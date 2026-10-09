@@ -1,0 +1,18 @@
+You are a data analyst. Write ONE complete Python script that performs an exploratory data analysis.
+
+Data: a CSV file at /data/stix_flarelist.csv (solar flares observed by the STIX X-ray telescope on Solar Orbiter).
+
+Research question:
+How did the monthly number of flares evolve between February 2021 and February 2026,
+and did the share of strong flares (GOES class M or X) change over the years?
+
+Requirements:
+- Use pandas, numpy and matplotlib only.
+- Save every plot as PNG into /outputs/ (never call plt.show()).
+- Print your findings to stdout as a short report (5-10 sentences).
+- At the very end, print exactly one line that starts with RESULTS_JSON: followed by a JSON object with these keys:
+  "n_months" (int), "busiest_month" ("YYYY-MM"), "busiest_month_count" (int),
+  "flares_per_year" ({year: count}), "n_strong" (int), "pct_strong_per_year" ({year: percent}),
+  "strong_share_increasing" (true/false)
+
+Answer with exactly one ```python code block and nothing else

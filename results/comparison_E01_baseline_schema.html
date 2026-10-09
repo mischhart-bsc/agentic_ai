@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>E01_baseline_schema</title>
+<style>body{font-family:sans-serif;margin:24px} table{border-collapse:collapse;margin:12px 0}
+td,th{border:1px solid #ccc;padding:6px 10px;text-align:center;vertical-align:top}
+a{color:#222} .legend span{padding:2px 8px;margin-right:6px}</style></head><body>
+<h2>Reflection levels on E01_baseline_schema</h2><p>model qwen3-4b-instruct-16k · T=0.7 · data context schema · commit 78f9598 · Surface-Mischa (Windows, 12 CPUs)</p>
+<p class="legend"><span style="background:#b7e1cd">all facts right</span><span style="background:#d9ead3">≥50 % facts</span>
+<span style="background:#fce8b2">ran, &lt;50 % facts</span><span style="background:#f4c7c3">crashed</span>
+<span style="background:#dddddd">infrastructure failure</span></p>
+<table><tr><th>seed</th><th>baseline<br><small>E01_baseline_schema</small></th></tr><tr><th>s101</th><td style="background:#f4c7c3"><a href="../experiments/E01_baseline_schema/cases/s101/v1/code.py">json_serialize</a><br><b>0%</b> facts · 2 plots<br><small>2,855 tok</small></td></tr><tr><th>s102</th><td style="background:#f4c7c3"><a href="../experiments/E01_baseline_schema/cases/s102/v1/code.py">period_type</a><br><b>0%</b> facts · 0 plots<br><small>2,685 tok</small></td></tr></table>
+<h3>Per level</h3><table><tr><th></th><th>baseline</th></tr><tr><th>ran</th><td>0/2</td></tr><tr><th>mean facts</th><td>0%</td></tr><tr><th>tokens / seed</th><td>2,770</td></tr><tr><th>LLM s / seed</th><td>572</td></tr><tr><th>vs. v1</th><td></td></tr><tr><th>errors</th><td>json_serialize: 1<br>period_type: 1</td></tr></table>
+<p><small>Every level starts from the same frozen v1 of the baseline. Transitions compare a level with v1 of the
+same seed; infrastructure failures are excluded. Click a cell to open its code.</small></p></body></html>

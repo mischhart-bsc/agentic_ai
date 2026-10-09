@@ -1,0 +1,36 @@
+{
+  "experiment": "L02_step1_baseline_a99a59",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "api_misuse",
+  "error_message": "TypeError: sum() got an unexpected keyword argument 'level'",
+  "error_line": 63,
+  "results_json_found": false,
+  "results_json_strict": null,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 1,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1281,
+    "completion_tokens": 1107,
+    "llm_seconds": 274.5,
+    "exec_seconds": 7.5,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20260929_223958_step1_baseline_8519"
+}
