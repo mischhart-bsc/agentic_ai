@@ -84,3 +84,10 @@ Reflection without feedback only swaps one error for another at 4.7x the tokens.
 Most frequent baseline error (`int64` in `json.dumps`) is trivial to fix with an error message,
 so it is the test case for 2b (critique + stdout/stderr). Open: bundle runs per experiment
 (folder per experiment) so groups stay clean.
+
+### Reflection File Schema
+case seed_101
+  v1  generate                   = baseline     (executed, frozen)
+   ├─ 2a   parent=v1  info: code
+   ├─ 2b   parent=v1  info: code + artifacts
+   └─ 2c   parent=v1  info: code + artifacts + checker facts
