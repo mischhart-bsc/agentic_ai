@@ -86,7 +86,7 @@ class Version:
     def write_result(self, result):
         """ Last step of a version: result.json marks it as done (experiment.is_done). """
         result = {"experiment": self.case.experiment.id, "seed": self.case.seed, "version": self.name, "parent": self.parent, **result}
-        self.save("result.json", json.dump(result, indent=2, ensure_ascii=False, default=str))
+        self.save("result.json", json.dumps(result, indent=2, ensure_ascii=False, default=str))
         # experiment/seed/version are part of every trace line already
         self.log("result", stage="evaluate", **{k: v for k, v in result.items() if k not in ("experiment", "seed", "version")})
         return result

@@ -1,4 +1,9 @@
-"""Runs Code-Files in a Docker-Container (without network, read-only Files)."""
+"""Runs Code-Files in a Docker-Container (without network, read-only Files).
+
+run is a trace.Run (old) or a trace.Version (experiments). With a Version the code lands in
+cases/s<seed>/<version>/code.py and the plots in that version's own outputs/, so the plots of v1 and of a
+reflection level never mix.
+"""
 import subprocess
 import config
 from src.trace import timer
@@ -15,7 +20,8 @@ def run_code(run, code: str):
            config.DOCKER_IMAGE, "python", f"/code/{path.name}"]
     t = timer()
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True,
+        # the container prints UTF-8; without encoding= Windows decodes it as cp1252 ("≥" -> "â‰¥")
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                            timeout=config.EXEC_TIMEOUT_S)
         stdout, stderr, code_ = p.stdout, p.stderr, p.returncode
     except subprocess.TimeoutExpired:
