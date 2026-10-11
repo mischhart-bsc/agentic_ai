@@ -1,0 +1,2 @@
+Now write the complete improved script that fixes the problems you listed.
+Answer with exactly one ```python code block and nothing else.

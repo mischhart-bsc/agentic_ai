@@ -8,7 +8,7 @@ import config
 run = Run("smoke")
 prompt = (f"Write Python code that loads /data/{config.DATA_FILE} with pandas "
           "and prints df.shape and df.columns.tolist(). "
-          "Return only one ```python code block. /no_think")
+          "Return only one ```python code block.")
 answer = chat(run, [{"role": "user", "content": prompt}], label="smoke")
 m = re.search(r"```python\n(.*?)```", answer, re.S)
 code = m.group(1) if m else answer

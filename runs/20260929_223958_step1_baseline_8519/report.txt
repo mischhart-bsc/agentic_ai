@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/code/step_002.py", line 63, in <module>
+    monthly_total = df.groupby(['year', 'month']).size().sum(level=0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/util/_decorators.py", line 336, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/series.py", line 7969, in sum
+    return NDFrame.sum(
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/generic.py", line 11895, in sum
+    return self._min_count_stat_function(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/generic.py", line 11873, in _min_count_stat_function
+    nv.validate_func(name, (), kwargs)
+  File "/usr/local/lib/python3.11/site-packages/pandas/compat/numpy/function.py", line 376, in validate_func
+    return validation_func(args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/compat/numpy/function.py", line 89, in __call__
+    validate_args_and_kwargs(
+  File "/usr/local/lib/python3.11/site-packages/pandas/util/_validators.py", line 225, in validate_args_and_kwargs
+    validate_kwargs(fname, kwargs, compat_args)
+  File "/usr/local/lib/python3.11/site-packages/pandas/util/_validators.py", line 166, in validate_kwargs
+    _check_for_invalid_keys(fname, kwargs, compat_args)
+  File "/usr/local/lib/python3.11/site-packages/pandas/util/_validators.py", line 140, in _check_for_invalid_keys
+    raise TypeError(f"{fname}() got an unexpected keyword argument '{bad_arg}'")
+TypeError: sum() got an unexpected keyword argument 'level'

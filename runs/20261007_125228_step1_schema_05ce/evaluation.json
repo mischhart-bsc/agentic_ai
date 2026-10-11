@@ -1,0 +1,100 @@
+{
+  "run_id": "20261007_125228_step1_schema_05ce",
+  "config": "step1_schema",
+  "overall": 0.375,
+  "dimensions": {
+    "execution": 0.5,
+    "completeness": 0.467,
+    "correctness": 0.0,
+    "method": 0.556,
+    "plots": 1.0
+  },
+  "flags": [
+    "Absturz: TypeError",
+    "RESULTS_JSON fehlt/unlesbar",
+    "falsche Aussage im Text: busiest_month",
+    "falsche Aussage im Text: strong_share_trend",
+    "keine GOES-Spalte verwendet",
+    "Klassenbuchstabe nicht sauber ausgewertet (z.B. contains statt str[0])",
+    "Report-Text fest im Code (nicht aus Ergebnissen erzeugt)"
+  ],
+  "details": {
+    "execution": {
+      "code_found": true,
+      "exit_ok": false,
+      "progress": 1.0,
+      "error": "TypeError",
+      "truncated": false
+    },
+    "completeness": {
+      "json_present": false,
+      "json_strict": false,
+      "json_keys": 0.0,
+      "n_sentences": 10,
+      "length_ok": 1.0,
+      "topics": {
+        "monthly_evolution": true,
+        "busiest_month": true,
+        "yearly_counts": true,
+        "strong_share": true,
+        "trend_answer": true,
+        "data_caveat": false
+      },
+      "topic_coverage": 0.833,
+      "n_plots": 1,
+      "plots_present": 0.5
+    },
+    "correctness": {
+      "checks": {
+        "n_months": false,
+        "busiest_month": false,
+        "busiest_month_count": false,
+        "flares_per_year": false,
+        "n_strong": false,
+        "pct_strong_per_year": false,
+        "strong_share_increasing": false
+      },
+      "fact_score": 0.0,
+      "text_numbers": 0,
+      "text_precision": null,
+      "text_json_consistency": null,
+      "claimed_busiest_month": "2021-02",
+      "claimed_strong_increase": true,
+      "claims": {
+        "busiest_month": false,
+        "strong_share_trend": false
+      },
+      "claims_score": 0.0
+    },
+    "method": {
+      "time_column": 1.0,
+      "goes_column": 0.0,
+      "class_letter": 0.0,
+      "no_misparse": 1.0,
+      "full_period": 1.0,
+      "trend_full_years": 1.0,
+      "dynamic_report": 0.0,
+      "errors_coerce": false,
+      "pct_matches_wrong_column": false
+    },
+    "plots": {
+      "n_plots": 1,
+      "files": [
+        {
+          "name": "monthly_flares_evolution.png",
+          "bytes": 84236,
+          "shape": [
+            480,
+            640,
+            4
+          ],
+          "std": 0.1591,
+          "ok": true
+        }
+      ],
+      "valid_ratio": 1.0,
+      "label_ratio": 1.0
+    }
+  },
+  "report_text": "The monthly number of solar flares shows a gradual increase from February 2021 to February 2026, with the busiest month being February 2025. The share of strong flares (GOES B8 or higher) appears to rise steadily over the years, indicating increasing flare intensity. Flares are most frequent in the second half of the years, with a notable uptick in the latter years. The distribution of flares is relatively stable across months, with peaks in mid-to-late months. The overall trend suggests a growing solar activity level over time. The share of strong flares increased from year to year, reflecting a possible intensification of solar events. Strong flares are more common in the later years, especially in 2025. The most active period is in February, though activity is spread across the year. There is no evidence of seasonal clustering beyond the natural solar cycle. The data confirms a long-term trend of increasing strong flares per year."
+}
