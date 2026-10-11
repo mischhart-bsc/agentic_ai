@@ -1,0 +1,36 @@
+{
+  "experiment": "L03_step1_baseline_530741",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "KeyError",
+  "error_category": "hallucinated_column",
+  "error_message": "KeyError: 'date'",
+  "error_line": 9,
+  "results_json_found": false,
+  "results_json_strict": null,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 264,
+    "completion_tokens": 9409,
+    "llm_seconds": 342.1,
+    "exec_seconds": 2.6,
+    "truncated": false
+  },
+  "migrated_from": "runs\\_archive\\20261004_135452_step1_baseline_7993"
+}

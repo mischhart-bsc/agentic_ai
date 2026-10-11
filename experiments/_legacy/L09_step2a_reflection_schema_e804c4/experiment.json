@@ -1,0 +1,22 @@
+{
+  "id": "L09_step2a_reflection_schema_e804c4",
+  "level": "2a",
+  "base": null,
+  "status": "legacy",
+  "data_context": "schema",
+  "config": "step2a_reflection_schema",
+  "model": "qwen3-4b-instruct-16k",
+  "temperature": null,
+  "prompts": {
+    "generate": "sha256:e804c4"
+  },
+  "seeds": [],
+  "source_runs": [
+    "20261007_003659_step2a_reflection_schema_54c9",
+    "20261007_012815_step2a_reflection_schema_ed82",
+    "20261007_014302_step2a_reflection_schema_e56a",
+    "20261007_015608_step2a_reflection_schema_08ec",
+    "20261007_020435_step2a_reflection_schema_a456"
+  ],
+  "note": "migrated from runs/ by tools/migrate_runs.py; temperature, git commit and seed were not logged at that time; old 2a runs never executed v1, so there is no paired v1 result"
+}

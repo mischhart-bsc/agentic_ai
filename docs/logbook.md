@@ -85,9 +85,104 @@ Most frequent baseline error (`int64` in `json.dumps`) is trivial to fix with an
 so it is the test case for 2b (critique + stdout/stderr). Open: bundle runs per experiment
 (folder per experiment) so groups stay clean.
 
-### Reflection File Schema
-case seed_101
-  v1  generate                   = baseline     (executed, frozen)
-   ├─ 2a   parent=v1  info: code
-   ├─ 2b   parent=v1  info: code + artifacts
-   └─ 2c   parent=v1  info: code + artifacts + checker facts
+## 2026-10-09 – Experiment structure for Step 2 (Mischa)
+
+### 9. Problem
+Runs were collected flat in `runs/`; the folder name (`…_step1_schema_…`) was the only record of the
+conditions. Prompt version, schema version, temperature and code version were not stored, so runs from
+different conditions silently ended up in the same group (entry 7 had to filter by date by hand). Within a
+2a run, v1 and the revised code were only `step_002.py` / `step_004.py`, and v1 was never executed, so a
+revision could not be compared with its own starting point.
+
+### 10. Design: experiment → case → version
+- **Experiment** = one set of fixed conditions, folder `experiments/<id>/` with a manifest
+  (`experiment.json`): level, base, model + digest, temperature, max_tokens, prompt hashes (+ copies),
+  git commit/dirty, machine, status. Resuming an id with different conditions is refused.
+- **Case** = one seed inside an experiment (`cases/s101/`), with one `trace.jsonl`.
+- **Version** = one code version of a case (`v1`, `2a`, `2b`, `2c`), each with its own folder:
+  `response.md`, `code.py`, `stdout.txt`, `stderr.txt`, `outputs/`, `result.json`
+  (+ `feedback.md`, `critique.md` for reflection). Every trace line carries `version` and `stage`.
+- **Reflection levels branch from the same frozen v1**:
+
+  ```
+  case s101
+    v1  generate                   = baseline     (executed, frozen; experiment E01)
+     ├─ 2a   parent=v1  info: code                                    (E02)
+     ├─ 2b   parent=v1  info: code + artifacts                        (E03)
+     └─ 2c   parent=v1  info: code + artifacts + checker facts        (E04)
+  ```
+
+- **Why branches and not a ladder (2b revising the output of 2a):** the task escalates the *information*
+  the critic gets, not the number of revision rounds. In a ladder, an improvement in 2c could not be
+  attributed (2a might already have fixed it), errors from one level would carry into the next (entry 7:
+  2a swaps errors), and 2c would have had three revision rounds against one for 2a. With branches every
+  level does exactly one critique + revise from the same v1; the information is the only variable.
+  A ladder can still be run later as a separate experiment (`parent` can point to any version).
+
+### 11. Seed test: the seed does not reproduce long answers
+Seed 101 was generated twice in two experiments (T01, T02, same prompt, schema, model, T=0.7):
+
+| | T01 | T02 |
+|---|---|---|
+| definition of "strong" | `GOES_flux_time_of_flare >= 1e-6` | `goes_estimated_mean_flux >= 6e-7` |
+| result | crash `json_serialize`, 2 plots | crash `ValueError` ('M' frequency), 0 plots |
+
+Short answers (40 tokens) are identical for the same seed and differ for another seed, streamed or not,
+so Ollama does use the seed. Long answers (~1,500 tokens) drift apart after a few hundred tokens,
+probably from small numeric differences on the CPU (e.g. a cached prompt on the second call).
+- **Decision:** comparability comes from the **frozen v1**, not from the seed. Reflection levels load v1
+  from the base experiment and never regenerate it. The seed names the case across all experiments.
+- For the report: "seeded, but not bit-for-bit reproducible for long outputs".
+
+### 12. What the critic sees per level (`src/feedback.py`)
+| Level | In addition to its own code |
+|---|---|
+| 2a | nothing |
+| 2b | exit code, stdout (head + tail), last 25 lines of the traceback, a text description of every plot |
+| 2c | 2b + independent check of each RESULTS_JSON value: supported / refuted / missing |
+
+- The feedback is put in front of the **same** critique prompt for every level; the revise prompt is the same
+  too. Only the information differs.
+- Plots: qwen3 cannot read images, so each PNG is described in text (size, "appears empty" or the share of
+  the area that is drawn). A vision model is an option for later (`judge_plots()`).
+- 2c reports only whether a claim holds, **never the correct value**; otherwise 2c would measure copying the
+  answer instead of reflection. The check uses the same checker as the evaluation; this is the "dedicated
+  code snippet" of the task.
+- In 2b/2c the critic sees the run of v1. v1 is now always executed; 2a still does not see the result.
+
+### 13. Evaluation and analysis
+- `src/evaluate.py`: one evaluation for every step (before: a copied block in step1 and step2).
+  `result.json` per version: exit code, error type/line/category, checker facts, report precision, plots,
+  cost (LLM calls, tokens, seconds; an interrupted attempt is not counted twice).
+- Error categories were derived from the final error lines of all 48 executions in the old runs
+  (`ERROR_RULES`): `hallucinated_column` 16, `date_parse` 8, ok 6, `json_serialize` 5, `period_type` 4,
+  `api_misuse` 2, `datetime_type` 2, `infra_docker` 2, `format_error`, `plot_error`, `internal_keyerror` 1 each.
+  A first rule counted `df['date'] = pd.to_datetime(df['date'])` as "column created by the code" and put
+  7 invented columns into `internal_keyerror`; fixed (an assignment only creates a column if its right side
+  does not read it).
+  `infra_docker`, `llm_timeout`, `llm_error` are not the model's fault and are excluded from transitions.
+  Limitation: the category is a heuristic on the last error line; it says where the code failed, not always why.
+- `analyze.py`: `results/versions.csv` (one row per version) and `results/comparison_<base>.html`
+  (seed × level, coloured by exit and facts). Transitions of a level vs. v1 of the same seed:
+  fixed / broken / swapped / same_error / still_ok.
+- `src/llm.py`: the time limit now runs in its own thread and also fires when Ollama sends nothing at all
+  (before, the check ran only when a token arrived: runs of 1,962 s with a 600 s limit). The seed is logged.
+
+### 14. Old runs
+`tools/migrate_runs.py` sorts `runs/` into `experiments/_legacy/` by (config, hash of the prompt the model
+received); `runs/` stays unchanged. Temperature, git commit and seed were not logged then.
+
+| group | runs | note |
+|---|---|---|
+| L00_invalid | 11 | LLM timeout 6, LLM/config error 5 |
+| L01–L04, L07 step1_baseline | 20 | four different prompts; 0 runs finish |
+| L05 step1_schema_893e3d | 5 | Jan's schema (2026-10-04); 0 finish |
+| L06 step1_schema_47bfcf | 5 | prompt with the "counted by start_UTC" hint; **2 finish**, 11 % facts |
+| L08 step1_schema_e804c4 | 8 | baseline of entry 7; 0 finish |
+| L09 step2a_reflection_schema_e804c4 | 5 | old 2a; v1 was not executed, so no pairing possible |
+
+### 15. Open
+- Run the new baseline and the three levels: E01 (`--schema`, seeds 101–105), then E02 (2a), E03 (2b), E04 (2c).
+- Decide whether `results/` goes into the repo (generated; proposal: `.gitignore`).
+- `analyze_runs.py` / `evaluate_reports.py` still read only `runs/`; port `report_eval` flags to experiments
+  or retire them after the migration.

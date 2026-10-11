@@ -1,0 +1,27 @@
+{
+  "id": "L04_step1_baseline_2e163a",
+  "level": "baseline",
+  "base": null,
+  "status": "legacy",
+  "data_context": "blind",
+  "config": "step1_baseline",
+  "model": "qwen3-4b-instruct-16k",
+  "temperature": null,
+  "prompts": {
+    "generate": "sha256:2e163a"
+  },
+  "seeds": [],
+  "source_runs": [
+    "20261004_150639_step1_baseline_d86c",
+    "20261004_150732_step1_baseline_d17a",
+    "20261004_150813_step1_baseline_1eec",
+    "20261004_150907_step1_baseline_d2d5",
+    "20261004_150954_step1_baseline_0dbd",
+    "20261004_144439_step1_baseline_d11f",
+    "20261004_144537_step1_baseline_7875",
+    "20261004_144702_step1_baseline_4fde",
+    "20261004_144757_step1_baseline_1c5d",
+    "20261004_145009_step1_baseline_9ad4"
+  ],
+  "note": "migrated from runs/ by tools/migrate_runs.py; temperature, git commit and seed were not logged at that time; old 2a runs never executed v1, so there is no paired v1 result"
+}

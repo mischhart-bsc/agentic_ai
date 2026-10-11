@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/code/step_002.py", line 18, in <module>
+    raise ValueError("CSV file must have a 'date' column for exploration.")
+ValueError: CSV file must have a 'date' column for exploration.
