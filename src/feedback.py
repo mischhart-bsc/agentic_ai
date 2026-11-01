@@ -18,7 +18,7 @@ from pathlib import Path
 from src.checker import check, extract_results
 from src.evaluate import report_text, sentences, text_claims, text_facts
 
-INTRO_2B = ("Your script was executed in a sandbox. These are the artifacts of that run "
+INTRO_2B = ("Your code was executed in a sandbox. These are the artifacts of that run "
             "(exit code, printed output, error, saved plots):")
 INTRO_2C = ("In addition, an independent script computed the requested facts directly from the CSV and "
             "compared them with your RESULTS_JSON. It reports for each key only whether your value is "
@@ -72,7 +72,7 @@ def artifacts(v1_dir):
     stderr = _read(v1_dir / "stderr.txt").strip()
     exit_code = result.get("exit_code")
 
-    lines = [f"Exit code: {exit_code}" + (" (the script finished)" if exit_code == 0 else " (the script failed)")]
+    lines = [f"Exit code: {exit_code}" + (" (the code finished)" if exit_code == 0 else " (the code failed)")]
     lines.append("Printed output (stdout):\n" + (f"```\n{_shorten(stdout, STDOUT_CHARS)}\n```" if stdout
                                                   else "(nothing was printed)"))
     if stderr:

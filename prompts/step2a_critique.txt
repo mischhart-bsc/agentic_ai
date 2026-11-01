@@ -1,4 +1,4 @@
-Review the script you just wrote, critically and concretely, against the task and its requirements.
+Review the code you just wrote, critically and concretely, against the task and its requirements.
 Check whether it fulfils every requirement, whether it would run without errors, and whether its results would be correct.
 List the concrete problems you find as short bullet points. If you find none, say so.
 Do not write code.

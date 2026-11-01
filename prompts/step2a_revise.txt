@@ -1,2 +1,2 @@
-Now write the complete script again. Change only what is needed to fix the problems you listed and keep every other line exactly as it was (same structure, same variable names, same plots).
+Now write the complete code again, in the same format as before (a notebook stays a notebook with the same "# %%" cells). Change only what is needed to fix the problems you listed and keep every other line exactly as it was (same structure, same variable names, same plots).
 Answer with exactly one ```python code block and nothing else.

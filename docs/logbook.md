@@ -247,4 +247,7 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
 - **Not done: plots described by a vision model.** The handout asks to consider visual artifacts. For now each plot is described by
   size and drawn area. A vision model (Ollama) that describes the picture in words is a candidate for step 3: built once as a function
   `describe_plot`, first as an automatic artifact, then as a tool the model can call itself.
+- **Wording "code" instead of "script"** in the critique prompt, the revise prompt and the 2b/2c feedback: baseline v2 asks for a
+  notebook, and "write the complete script again" invited the model to drop the "# %%" cells. The revise prompt now asks to keep the
+  format. Reflection runs made with the old wording are not comparable with new ones (different prompt hashes).
 
