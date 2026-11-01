@@ -293,6 +293,41 @@ def reference_of(exp_id, manifests):
     return max(earlier, key=lambda i: manifests[i].get("started") or "", default=None)
 
 
+def quality_vs_cost(ids, manifests, sums):
+    """Section 1b: one table per baseline that has reflection levels: what each level gains and what it costs.
+    'per 1k extra tokens' = Δ facts (percentage points) / (Δ tokens per seed / 1000) against the baseline."""
+    L = ["", "## 1b. Quality vs cost per reflection level", "",
+         "One table per baseline. Quality: runs that finished, funnel depth, facts, report quality (0-100). Cost: LLM calls, "
+         "tokens and LLM seconds per seed (seconds depend on the machine and its power mode; compare tokens). "
+         "**Δ facts per 1k extra tokens** = how many percentage points of facts a level gains for every 1,000 tokens it costs "
+         "more than the baseline."]
+    for b in ids:
+        levels = sorted((i for i in ids if manifests[i].get("base") == b),
+                        key=lambda i: (manifests[i].get("level") or "", manifests[i].get("started") or ""))
+        if manifests[b].get("level") != "baseline" or not levels or not sums[b]["n"]:
+            continue
+        L += ["", f"### Base {b}", "",
+              "| Level | Exp | Ran | Depth | Facts % | Report | LLM calls | Tokens / seed | LLM s / seed | Δ facts | Δ tokens | Δ facts per 1k extra tokens |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+        base_facts, base_tok = mean(sums[b]["facts"] or [0]), mean(sums[b]["tokens"])
+        for i in [b] + levels:
+            x = sums[i]
+            if not x["n"]:
+                L.append(f"| {manifests[i].get('level')} | {i} | no results yet | | | | | | | | | |")
+                continue
+            facts, tok = mean(x["facts"] or [0]), mean(x["tokens"])
+            report = f"{mean(x['quality']['overall']):.0f}" if x["quality"]["overall"] else "–"
+            if i == b:
+                d_facts = d_tok = per_k = "–"
+            else:
+                d_facts, d_tok = f"{facts - base_facts:+.1f}", f"{tok - base_tok:+,.0f}"
+                per_k = f"{(facts - base_facts) / ((tok - base_tok) / 1000):+.2f}" if tok - base_tok > 0 else "–"
+            L.append(f"| {manifests[i].get('level')} | {i} | {x['ran']}/{x['n'] - x['infra']} | "
+                     f"{mean(x['depth'] or [0]):.1f} | {facts:.0f} | {report} | {mean(x['llm_calls']):.1f} | "
+                     f"{tok:,.0f} | {mean(x['seconds']):,.0f} | {d_facts} | {d_tok} | {per_k} |")
+    return L
+
+
 def write_performance_log(manifests, rows):
     ids = sorted((i for i, m in manifests.items() if m.get("status") != "legacy" and not i.startswith("L")),
                  key=lambda i: manifests[i].get("started") or "")
@@ -326,6 +361,8 @@ def write_performance_log(manifests, rows):
                  f"{crash_text(x)} | "
                  f"{_ms(x['facts'], lambda v: f'{v:.0f}')} | {delta(i, 'facts')} | "
                  f"{mean(x['tokens']):,.0f} | {mean(x['seconds']):,.0f} |" if x["n"] else f"| {i} | {m.get('level')} | {change} | no results yet | | | | | | |")
+
+    L += quality_vs_cost(ids, manifests, sums)
 
     L += ["", "## 2. Funnel (runs that reached each stage)", "",
           "| Exp | " + " | ".join(FUNNEL) + " |", "|---|" + "---|" * len(FUNNEL)]

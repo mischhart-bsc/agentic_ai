@@ -37,10 +37,10 @@ Ground rule for every step: build → run ≥5× → measure → read traces →
 - [ ] Run the judge on the same reports, measure agreement, adjust the prompt until it matches
 
 ## Step 2: Reflection (3 levels)
-- [ ] 2a: LLM critiques its own report and improves it → 5 runs, measure, compare with baseline
-- [ ] 2b: critique + artifacts (stdout, errors, plots) → 5 runs, measure, compare with 2a
-- [ ] 2c: critique + external feedback (checker script recomputes claimed numbers) → 5 runs, measure, compare with 2b
-- [ ] Table: quality vs. cost per level → log
+- [x] 2a: LLM critiques its own report and improves it → 5 runs, measure, compare with baseline
+- [x] 2b: critique + artifacts (stdout, errors, plots) → 5 runs, measure, compare with 2a
+- [x] 2c: critique + external feedback (checker script recomputes claimed numbers) → 5 runs, measure, compare with 2b
+- [x] Table: quality vs. cost per level → log
 
 ## Step 3: Tool use
 - [ ] Define and justify the tool set (e.g. `run_code`, `save_plot`, `write_file`, `check_fact`)
