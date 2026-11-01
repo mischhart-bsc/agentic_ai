@@ -251,3 +251,23 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
   notebook, and "write the complete script again" invited the model to drop the "# %%" cells. The revise prompt now asks to keep the
   format. Reflection runs made with the old wording are not comparable with new ones (different prompt hashes).
 
+
+### 21. RESULTS_JSON: the format failed, not the analysis; baseline v3 saves a file
+- **Finding (E02-E08).** No run printed the line exactly as `RESULTS_JSON: {...}`, so every fact score was 0 %. Three patterns, fixed
+  per seed (reflection kept them): the dict is assigned to a variable `RESULTS_JSON = {...}` and never printed (natural in a notebook);
+  `print("RESULTS_JSON", json.dumps(..., indent=2))` without ':'; `print("RESULTS_JSON")` and the dict on the next line. Several of
+  these runs had 5 of 7 facts right (months, busiest month and count, flares per year, trend).
+- **Measurement.** `src/checker.py` now also reads `RESULTS_JSON` without ':' and with the object on the next line (`json_found`);
+  `json_strict` still requires exactly `RESULTS_JSON: {...}` with valid JSON, so the format error stays visible in the funnel (and the
+  funnel depth stops there). `analyze.py` recomputes the facts of every run (`facts_for_dir`, like `report_precision`); `result.json`
+  is not rewritten. Old experiments show their real fact scores now.
+- **2b/2c feedback.** The run observation names where the results ended up and in which form ("'RESULTS_JSON' printed (stdout line 2),
+  but not in the form 'RESULTS_JSON: {...}'"). Before it said "not printed" for these runs, which was wrong. 2c checks the leniently
+  read results. Both change the feedback texts, so new reflection experiments are needed.
+- **Baseline v3 (`prompts/step1_baseline_v3.txt`).** Report and measurement are separated: plots are shown and saved, a summary cell
+  prints the findings from the computed variables, and the last cell saves the results with `json.dump` to `/outputs/results.json`.
+  A file fits the notebook style, and the checker reads it first (then falls back to stdout, so v2 runs stay readable).
+- **Runner shim.** `json.dump` is made numpy-safe like `json.dumps` (otherwise `np.int64` in results.json crashes). The shim hash
+  changes, so the manifests of new experiments record the new version.
+- **Still open:** `n_strong` and `pct_strong_per_year` are wrong in every run. Without a definition the model counts B4+/C+ as strong
+  (about 25,000 instead of 1,637 M/X flares). Decide: keep the definition open (an assumption the model must make) or state it.

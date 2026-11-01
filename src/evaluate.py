@@ -80,10 +80,20 @@ def error_info(stderr, exit_code, code):
 FUNNEL = ("answered", "code_found", "ran", "json_found", "json_strict", "keys_complete", "any_fact", "all_facts")
 
 
-def funnel(result, stdout):
+def facts_of(stdout, out_dir=None):
+    """The checker part of result.json: are the results readable (outputs/results.json or a RESULTS_JSON block),
+    strictly valid, and which facts are correct. analyze.py recomputes this for old runs too (like report_precision),
+    so a change of the parser applies to every experiment; result.json itself is not rewritten."""
+    results = extract_results(stdout, out_dir)
+    checks = check(results)
+    return {"results_json_found": results is not None, "results_json_strict": strict_json_ok(stdout, out_dir),
+            "checks": checks, "fact_score": score(checks)}
+
+
+def funnel(result, stdout, out_dir=None):
     """Which stages of FUNNEL did this version pass, and how many in a row (depth, 0..8).
     result  the result dict of evaluate_version (without the funnel)   stdout  the stdout of the executed code"""
-    results = extract_results(stdout) or {}
+    results = extract_results(stdout, out_dir) or {}
     checks = result.get("checks") or {}
     valid = [v for v in checks.values() if v is not None]
     stages = {
@@ -109,7 +119,15 @@ def funnel_for_dir(version_dir):
     d = Path(version_dir)
     result = json.loads((d / "result.json").read_text(encoding="utf-8"))
     out = d / "stdout.txt"
-    return funnel(result, out.read_text(encoding="utf-8") if out.exists() else "")
+    stdout = out.read_text(encoding="utf-8") if out.exists() else ""
+    return funnel({**result, **facts_of(stdout, d / "outputs")}, stdout, d / "outputs")
+
+
+def facts_for_dir(version_dir):
+    """facts_of() of an already evaluated version folder (reads stdout.txt and outputs/)."""
+    d = Path(version_dir)
+    out = d / "stdout.txt"
+    return facts_of(out.read_text(encoding="utf-8") if out.exists() else "", d / "outputs")
 
 
 # ---------------------------------------------------------------- notebook
@@ -208,8 +226,8 @@ def _weighted(parts):
 
 
 def report_text(stdout):
-    """The report = everything printed before the RESULTS_JSON line."""
-    return (stdout or "").split("RESULTS_JSON:")[0].strip()
+    """The report = everything printed before the RESULTS_JSON line (with or without ':')."""
+    return (stdout or "").split("RESULTS_JSON")[0].strip()
 
 
 def sentences(text):
@@ -483,11 +501,11 @@ def _eval_plots(plot_files, code, flags):
     return _mean([m["valid_ratio"], m["label_ratio"]]), m
 
 
-def report_quality(code, stdout, plot_files, result):
+def report_quality(code, stdout, plot_files, result, out_dir=None):
     """The five dimensions, the weighted overall score and readable flags for one executed version.
     result = the result dict of evaluate_version so far (exit code, checks, cost, ...)."""
     flags, dims, details = [], {}, {}
-    results = extract_results(stdout)
+    results = extract_results(stdout, out_dir)
     text = report_text(stdout)
     dims["execution"], details["execution"] = _eval_execution(code, result, flags)
     dims["completeness"], details["completeness"] = _eval_completeness(results, text, result, len(plot_files), flags)
@@ -502,8 +520,8 @@ def report_quality_for_dir(version_dir):
     """Re-score an already evaluated version folder (reads code.py, stdout.txt, outputs/, result.json)."""
     d = Path(version_dir)
     read = lambda name: (d / name).read_text(encoding="utf-8") if (d / name).exists() else ""   # noqa: E731
-    result = json.loads(read("result.json") or "{}")
-    return report_quality(read("code.py"), read("stdout.txt"), sorted((d / "outputs").glob("*.png")), result)
+    result = {**json.loads(read("result.json") or "{}"), **facts_of(read("stdout.txt"), d / "outputs")}
+    return report_quality(read("code.py"), read("stdout.txt"), sorted((d / "outputs").glob("*.png")), result, d / "outputs")
 
 
 def version_cost(version):
@@ -544,24 +562,20 @@ def evaluate_version(version, code, res=None, llm_error=None):
         err = {"error_type": llm_error, "error_message": stderr[:200], "error_line": None,
                "error_category": "llm_timeout" if "Timeout" in llm_error else "llm_error"}
 
-    results = extract_results(stdout)
-    checks = check(results)
+    out_dir = version.dir / "outputs"
     result = {
         "llm_error": llm_error,
         "code_found": code is not None,
         "exit_code": res.get("exit_code"),
         **{k: err.get(k) for k in ("error_type", "error_category", "error_message", "error_line")},
-        "results_json_found": results is not None,
-        "results_json_strict": strict_json_ok(stdout),
+        **facts_of(stdout, out_dir),
         "report_precision": report_precision(stdout),
-        "checks": checks,
-        "fact_score": score(checks),
-        "n_plots": len(list((version.dir / "outputs").glob("*.png"))),
+        "n_plots": len(list(out_dir.glob("*.png"))),
         "cost": version_cost(version),
     }
-    f = funnel(result, stdout)
+    f = funnel(result, stdout, out_dir)
     result["funnel"], result["funnel_depth"] = f["stages"], f["depth"]
-    rq = report_quality(code, stdout, sorted((version.dir / "outputs").glob("*.png")), result)
+    rq = report_quality(code, stdout, sorted(out_dir.glob("*.png")), result, out_dir)
     result["report"] = {k: rq[k] for k in ("overall", "dimensions", "flags", "details")}
     return version.write_result(result)
 

@@ -13,15 +13,16 @@ Design decisions (keep in the report):
   fix the cause itself, otherwise 2c would measure copying the answer instead of reflection.
 """
 import json
+import re
 from pathlib import Path
 
-from src.checker import check, extract_results
+from src.checker import results_file_text, check, extract_results, strict_json_ok
 from src.evaluate import report_text, sentences, text_claims, text_facts
 
 INTRO_2B = ("Your code was executed in a sandbox. These are the artifacts of that run "
             "(exit code, printed output, error, saved plots):")
 INTRO_2C = ("In addition, an independent script computed the requested facts directly from the CSV and "
-            "compared them with your RESULTS_JSON. It reports for each key only whether your value is "
+            "compared them with your results (RESULTS_JSON or /outputs/results.json). It reports for each key only whether your value is "
             "supported, refuted or missing; it does not reveal the correct values.")
 INTRO_RUN = "Run observations (facts about the run, no judgement):"
 INTRO_2C_TEXT = ("Independent check of what your report TEXT states (the same facts, read from the printed prose; "
@@ -93,10 +94,26 @@ def run_observations(stdout, result, out_dir):
     else:
         obs.append(f"- printed to stdout: {len(stdout.splitlines())} lines, {len(stdout)} characters")
         obs.append(f"- text printed before a RESULTS_JSON line: {len(sentences(text))} sentences")
-        obs.append("- a line starting with RESULTS_JSON: " + ("printed" if "RESULTS_JSON:" in stdout else "not printed"))
+    obs.append(results_observation(stdout, out_dir))
     n_png = len(list(Path(out_dir).glob("*.png"))) if Path(out_dir).exists() else 0
     obs.append(f"- plots saved: {n_png}")
     return INTRO_RUN + "\n" + "\n".join(obs)
+
+
+def results_observation(stdout, out_dir):
+    """Where the results ended up, as a plain fact (works for the stdout contract of v2 and the results.json of v3):
+    which file or line exists and whether it is valid JSON. Says nothing about the values."""
+    if results_file_text(out_dir) is not None:
+        return "- /outputs/results.json: saved, " + ("valid JSON" if strict_json_ok("", out_dir) else "NOT valid JSON")
+    if "RESULTS_JSON" not in stdout:
+        return "- results: no /outputs/results.json was saved and no RESULTS_JSON line was printed"
+    if strict_json_ok(stdout):
+        return "- a line starting with RESULTS_JSON: printed, valid JSON"
+    line = next(i for i, l in enumerate(stdout.splitlines(), 1) if "RESULTS_JSON" in l)
+    if re.search(r"RESULTS_JSON:\s*\{", stdout):
+        return f"- 'RESULTS_JSON:' printed (stdout line {line}), but the object after it is NOT valid JSON"
+    return (f"- 'RESULTS_JSON' printed (stdout line {line}), but not in the form 'RESULTS_JSON: {{...}}' "
+            "(no ':' or the object is not on the same line)")
 
 
 def describe_plots(out_dir):
@@ -165,12 +182,12 @@ def text_check(stdout):
 
 def external_check(v1_dir):
     stdout = _read(Path(v1_dir) / "stdout.txt")
-    results = extract_results(stdout)
+    results = extract_results(stdout, Path(v1_dir) / "outputs")
     if results is None:
-        head = ("Independent check: no RESULTS_JSON line was printed, so none of your claims could be checked. "
-                "All 7 requested values are missing.")
+        head = ("Independent check: your results could not be read (no /outputs/results.json and no readable "
+                "RESULTS_JSON line), so none of your claims could be checked. All 7 requested values are missing.")
     else:
-        lines = ["Independent check of your RESULTS_JSON:"]
+        lines = ["Independent check of your results:"]
         for key, ok in check(results).items():
             if ok is None:
                 continue

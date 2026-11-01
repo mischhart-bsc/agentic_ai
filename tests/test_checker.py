@@ -4,6 +4,7 @@ Run:  python tests/test_checker.py
 """
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -59,6 +60,18 @@ def test_checker():
     assert not strict_json_ok(np_line)
     assert extract_results(np_line) == {"n_months": 61, "strong_share_increasing": False}
     assert extract_results("no result line here") is None
+
+    # tolerant: no ':' or the object on the next line (E02-E08) is read, but is not strict
+    for loose in ("RESULTS_JSON " + json.dumps(perfect(), indent=2), "report\nRESULTS_JSON\n" + str(perfect())):
+        assert extract_results(loose) == perfect() and not strict_json_ok(loose)
+
+    # prompt v3: outputs/results.json wins over stdout
+    with tempfile.TemporaryDirectory() as d:
+        assert extract_results("", d) is None and not strict_json_ok("", d)
+        (Path(d) / "results.json").write_text(json.dumps(perfect()))
+        assert extract_results("no line", d) == perfect() and strict_json_ok("no line", d)
+        (Path(d) / "results.json").write_text("{'n_months': 61}")
+        assert extract_results("", d) == {"n_months": 61} and not strict_json_ok("", d)
 
 
 if __name__ == "__main__":

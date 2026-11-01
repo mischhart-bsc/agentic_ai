@@ -17,6 +17,7 @@ They make the environment behave like a notebook, without touching the model's c
   - display(x)   exists, as in Jupyter (a plain script has no display -> NameError)
   - json.dumps   accepts numpy numbers/bools/arrays and pandas Timestamp/Period, also as dict KEYS
                  (before: "Object of type int64 is not JSON serializable", "keys must be str, int, ... not int64")
+  - json.dump    the same, for writing /outputs/results.json (prompt step1_baseline_v3)
 
 Every experiment records whether the shims were on and the hash of this file (manifest: runner_shims, shim_hash),
 because they hide two kinds of model errors.
@@ -57,6 +58,15 @@ def _safe_dumps(obj, *args, **kwargs):
 
 
 json.dumps = _safe_dumps
+
+_dump = json.dump
+
+
+def _safe_dump(obj, fp, *args, **kwargs):
+    return _dump(_plain(obj), fp, *args, **kwargs)
+
+
+json.dump = _safe_dump
 '''
 
 

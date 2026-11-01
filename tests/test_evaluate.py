@@ -280,13 +280,15 @@ def test_shim():
     prog = (SHIM + "\nimport json\n"
             "import numpy as np, pandas as pd\n"
             "print(json.dumps({'a': np.int64(3), 'b': np.bool_(True), 'c': pd.Timestamp('2024-01-02'), 'd': np.arange(2), np.int64(7): 1}))\n"
-            "display('shown')\n")
+            "display('shown')\n"
+            "import io; f = io.StringIO(); json.dump({'n': np.int64(5)}, f); print(f.getvalue())\n")
     root = Path(__file__).resolve().parent.parent
     venv = root / ".venv" / "bin" / "python"
     out = subprocess.run([str(venv) if venv.exists() else sys.executable, "-c", prog], cwd=root, capture_output=True, text=True)
     assert out.returncode == 0, out.stderr
     assert json.loads(out.stdout.splitlines()[0]) == {"a": 3, "b": True, "c": "2024-01-02 00:00:00", "d": [0, 1], "7": 1}
     assert out.stdout.splitlines()[1] == "shown"
+    assert json.loads(out.stdout.splitlines()[2]) == {"n": 5}             # json.dump to a file (prompt v3)
 
 
 if __name__ == "__main__":

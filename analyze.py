@@ -31,7 +31,7 @@ from statistics import mean, median, pstdev
 
 import config
 from src.checker import KEYS, report_precision
-from src.evaluate import FUNNEL, WEIGHTS, funnel_for_dir, report_quality_for_dir
+from src.evaluate import FUNNEL, WEIGHTS, facts_for_dir, funnel_for_dir, report_quality_for_dir
 
 RESULTS_DIR = config.ROOT / "results"
 TEXT_KEYS = ["n_months", "busiest_month", "busiest_month_count", "n_strong", "strong_share_increasing"]   # readable from prose
@@ -59,6 +59,7 @@ def collect(legacy=False):
         manifests[m["id"]] = m
         for res_file in sorted(d.glob("cases/*/*/result.json")):
             r = json.loads(res_file.read_text(encoding="utf-8"))
+            r.update(facts_for_dir(res_file.parent))        # fresh, so a parser change applies to old runs too
             cost = r.get("cost") or {}
             fn = funnel_for_dir(res_file.parent)
             rq = report_quality_for_dir(res_file.parent)
