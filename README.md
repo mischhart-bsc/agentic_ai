@@ -67,8 +67,8 @@ What the critic sees per level (`src/feedback.py`):
 | Level | In addition to its own code |
 |---|---|
 | 2a | nothing |
-| 2b | exit code, stdout, traceback, a text description of every saved plot |
-| 2c | 2b + independent check of each RESULTS_JSON value: supported / refuted / missing (never the correct value) |
+| 2b | exit code, stdout, traceback, plain run observations (run time, size of the output, sentences printed, RESULTS_JSON line printed or not, number of plots), a text description of every saved plot |
+| 2c | 2b + independent check of each RESULTS_JSON value (supported / refuted / missing) and of what the report text claims (months, busiest month, strong flares, trend: supported / refuted); never the correct value. A missing RESULTS_JSON line is named explicitly |
 
 Naming: `E<nn>_<level>_<data context>`, numbered in the order the experiments are started.
 Reading a case: open `experiments/<id>/cases/s<seed>/` – `trace.jsonl` for the full history,

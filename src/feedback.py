@@ -16,12 +16,16 @@ import json
 from pathlib import Path
 
 from src.checker import check, extract_results
+from src.evaluate import report_text, sentences, text_claims, text_facts
 
 INTRO_2B = ("Your script was executed in a sandbox. These are the artifacts of that run "
             "(exit code, printed output, error, saved plots):")
 INTRO_2C = ("In addition, an independent script computed the requested facts directly from the CSV and "
             "compared them with your RESULTS_JSON. It reports for each key only whether your value is "
             "supported, refuted or missing; it does not reveal the correct values.")
+INTRO_RUN = "Run observations (facts about the run, no judgement):"
+INTRO_2C_TEXT = ("Independent check of what your report TEXT states (the same facts, read from the printed prose; "
+                 "the correct values are not revealed):")
 CLOSING = "Use this information in your review."
 
 STDOUT_CHARS = 3000         # the report is at the start, RESULTS_JSON at the end: keep head and tail
@@ -32,9 +36,9 @@ def prompt_texts(level):
     """The fixed texts a level adds to the prompt; they go into the manifest so a change is detected."""
     texts = {}
     if level in ("2b", "2c"):
-        texts["feedback_2b"] = "\n".join((INTRO_2B, CLOSING))
+        texts["feedback_2b"] = "\n".join((INTRO_2B, INTRO_RUN, CLOSING))
     if level == "2c":
-        texts["feedback_2c"] = INTRO_2C
+        texts["feedback_2c"] = "\n".join((INTRO_2C, INTRO_2C_TEXT))
     return texts
 
 
@@ -74,8 +78,25 @@ def artifacts(v1_dir):
     if stderr:
         tail = "\n".join(stderr.splitlines()[-STDERR_LINES:])
         lines.append(f"Error output (stderr, last {STDERR_LINES} lines):\n```\n{tail}\n```")
+    lines.append(run_observations(stdout, result, v1_dir / "outputs"))
     lines.append("Saved plots in /outputs/:\n" + describe_plots(v1_dir / "outputs"))
     return "\n\n".join(lines)
+
+
+def run_observations(stdout, result, out_dir):
+    """Plain observations about the run: time, size of the output, length of the report text, whether a RESULTS_JSON line exists,
+    number of plots. No judgement and no hint what the task asked for."""
+    text = report_text(stdout)
+    obs = [f"- run time: {(result.get('cost') or {}).get('exec_seconds', '?')} s"]
+    if not stdout.strip():
+        obs.append("- nothing was printed to stdout")
+    else:
+        obs.append(f"- printed to stdout: {len(stdout.splitlines())} lines, {len(stdout)} characters")
+        obs.append(f"- text printed before a RESULTS_JSON line: {len(sentences(text))} sentences")
+        obs.append("- a line starting with RESULTS_JSON: " + ("printed" if "RESULTS_JSON:" in stdout else "not printed"))
+    n_png = len(list(Path(out_dir).glob("*.png"))) if Path(out_dir).exists() else 0
+    obs.append(f"- plots saved: {n_png}")
+    return INTRO_RUN + "\n" + "\n".join(obs)
 
 
 def describe_plots(out_dir):
@@ -114,20 +135,49 @@ CLAIM_NAMES = {
 }
 
 
+TEXT_LABELS = {"n_months": "number of months", "busiest_month": "busiest month",
+               "busiest_month_count": "flares in the busiest month", "n_strong": "number of strong flares",
+               "strong_share_increasing": "strong share increasing 2022-2025"}
+
+
+def _claim_text(key, value):
+    if key == "strong_share_increasing":
+        return "the share rises" if value else "the share does not rise"
+    if key == "busiest_month_count":
+        return ", ".join(f"{v:g}" for v in value)
+    return f"{value:g}" if isinstance(value, float) else str(value)
+
+
+def text_check(stdout):
+    """2c: what the printed report text claims, checked against the data. Says supported / REFUTED, never the correct value."""
+    text = report_text(stdout)
+    claims, facts = text_claims(text), text_facts(text)
+    lines = [INTRO_2C_TEXT]
+    for key, ok in facts.items():
+        if ok is not None:
+            lines.append(f"- {TEXT_LABELS[key]}: your text says {_claim_text(key, claims[key])} -> "
+                         + ("supported" if ok else "REFUTED (the independent computation gives a different value)"))
+    if len(lines) == 1:
+        lines.append("- your text states none of the checkable facts (number of months, busiest month, number of strong "
+                     "flares, direction of the trend)")
+    return "\n".join(lines)
+
+
 def external_check(v1_dir):
     stdout = _read(Path(v1_dir) / "stdout.txt")
     results = extract_results(stdout)
     if results is None:
-        return ("Independent check: no RESULTS_JSON line was printed, so none of your claims could be checked. "
+        head = ("Independent check: no RESULTS_JSON line was printed, so none of your claims could be checked. "
                 "All 7 requested values are missing.")
-    checks = check(results)
-    lines = ["Independent check of your RESULTS_JSON:"]
-    for key, ok in checks.items():
-        if ok is None:
-            continue
-        if key not in results:
-            verdict = "MISSING (key not in your JSON)"
-        else:
-            verdict = "supported" if ok else "REFUTED (the independent computation gives a different value)"
-        lines.append(f"- {key} ({CLAIM_NAMES.get(key, key)}): {verdict}")
-    return "\n".join(lines)
+    else:
+        lines = ["Independent check of your RESULTS_JSON:"]
+        for key, ok in check(results).items():
+            if ok is None:
+                continue
+            if key not in results:
+                verdict = "MISSING (key not in your JSON)"
+            else:
+                verdict = "supported" if ok else "REFUTED (the independent computation gives a different value)"
+            lines.append(f"- {key} ({CLAIM_NAMES.get(key, key)}): {verdict}")
+        head = "\n".join(lines)
+    return head + "\n\n" + text_check(stdout)

@@ -232,3 +232,19 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
   dimensions are unchanged (the three test cases give the same scores as before).
 - A repair of the missing line (a second model call that reminds the model of the format) is not part of the baseline; it belongs to
   the reflection levels.
+
+### 20. Reflection levels 2b and 2c, revise prompt
+- **2b: run observations.** Plain facts about the run are added to the artifacts: run time, size of the printed output, number of
+  sentences printed before the JSON line, whether a RESULTS_JSON line was printed, number of plots. Observations only: no judgement
+  and no hint at what the task asked for.
+- **2c: the report text is checked as well.** `src/feedback.py` reuses `text_claims()` / `text_facts()` of `src/evaluate.py`: for every
+  fact the text states (months, busiest month, number of strong flares, trend) the critic gets "supported" or "REFUTED", with the
+  claim quoted, never the correct value. If the RESULTS_JSON line is missing, the critic is told so explicitly. Before, 2c had nothing
+  to say in that case.
+- **Revise prompt (all levels): minimal change.** "Change only what is needed to fix the problems you listed and keep every other line
+  exactly as it was." Against the pattern that a full rewrite replaces one error by another. Same prompt for 2a, 2b and 2c, so only the
+  information differs between the levels.
+- **Not done: plots described by a vision model.** The handout asks to consider visual artifacts. For now each plot is described by
+  size and drawn area. A vision model (Ollama) that describes the picture in words is a candidate for step 3: built once as a function
+  `describe_plot`, first as an automatic artifact, then as a tool the model can call itself.
+

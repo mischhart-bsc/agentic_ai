@@ -308,26 +308,37 @@ def _as_number(x):
     return float(x.replace(",", "").replace("'", ""))
 
 
+def text_claims(text):
+    """What the report TEXT states about the requested facts, as values ({key: value or None}); None = not stated.
+    busiest_month_count is the list of numbers in the sentence about the busiest month."""
+    sents = sentences(text)
+    m = re.search(r"\b(\d{2,3})\s+(?:calendar\s+)?months?\b", text or "", re.I)
+    sent = _busiest_sentence(sents)
+    n_strong = (re.search(r"(\d[\d,']{2,})\s+(?:\w+\s+){0,3}?strong", text or "", re.I)
+                or re.search(r"strong\s+(?:\w+\s+){0,3}?(?:was|were|is|are|:)\s*(\d[\d,']{2,})", text or "", re.I))
+    return {"n_months": int(_as_number(m.group(1))) if m else None,
+            "busiest_month": _claim_busiest(sents),
+            "busiest_month_count": numbers_in(sent) if sent and numbers_in(sent) else None,
+            "n_strong": _as_number(n_strong.group(1)) if n_strong else None,
+            "strong_share_increasing": _claim_trend(sents)}
+
+
 def text_facts(text):
     """The facts of RESULTS_JSON that can be read from the report TEXT, compared with the ground truth.
     Used when the model did not print RESULTS_JSON (the fact score of the JSON is then blind, not zero by analysis).
     {key: True / False / None}; None = the text says nothing that can be read for this key.
     Not readable from prose: flares_per_year, pct_strong_per_year (tables of numbers)."""
-    sents, out = sentences(text), {}
-    m = re.search(r"\b(\d{2,3})\s+(?:calendar\s+)?months?\b", text or "", re.I)
-    out["n_months"] = (_as_number(m.group(1)) == GT["n_months"]) if m else None
-    busiest = _claim_busiest(sents)
-    out["busiest_month"] = (busiest == GT["busiest_month"]) if busiest else None
-    sent = _busiest_sentence(sents)
-    nums = [n for n in numbers_in(sent)] if sent else []
-    out["busiest_month_count"] = (any(abs(n - GT["busiest_month_count"]) <= 0.005 * GT["busiest_month_count"] for n in nums)
-                                  if nums else None)
-    m = (re.search(r"(\d[\d,']{2,})\s+(?:\w+\s+){0,3}?strong", text or "", re.I)
-         or re.search(r"strong\s+(?:\w+\s+){0,3}?(?:was|were|is|are|:)\s*(\d[\d,']{2,})", text or "", re.I))
-    out["n_strong"] = (abs(_as_number(m.group(1)) - GT["n_strong_estimated_MX"]) <= 0.005 * GT["n_strong_estimated_MX"]) if m else None
-    trend = _claim_trend(sents)
-    out["strong_share_increasing"] = (trend == GT["strong_share_increasing_full_years"]) if trend is not None else None
-    return out
+    c = text_claims(text)
+    near = lambda x, truth: abs(x - truth) <= 0.005 * truth      # noqa: E731
+    return {
+        "n_months": None if c["n_months"] is None else c["n_months"] == GT["n_months"],
+        "busiest_month": None if c["busiest_month"] is None else c["busiest_month"] == GT["busiest_month"],
+        "busiest_month_count": (None if c["busiest_month_count"] is None
+                                else any(near(n, GT["busiest_month_count"]) for n in c["busiest_month_count"])),
+        "n_strong": None if c["n_strong"] is None else near(c["n_strong"], GT["n_strong_estimated_MX"]),
+        "strong_share_increasing": (None if c["strong_share_increasing"] is None
+                                    else c["strong_share_increasing"] == GT["strong_share_increasing_full_years"]),
+    }
 
 
 def _eval_correctness(results, text, result, flags):
