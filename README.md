@@ -4,12 +4,9 @@
 3. `python -m venv .venv` and activate, `pip install -r requirements.txt`
 4. `docker build -t agai-sandbox sandbox/`
 5. `python get_data.py`
-6. `python smoke_test.py`  -> Output + runs/<id>/trace.jsonl
+6. `python smoke_test.py`  -> output + `runs/<date>_<time>_smoke_<id>/trace.jsonl` (setup check only: Ollama -> Docker -> data)
 
 Docker Desktop and Ollama must both be running for every experiment.
-
-**New here? Read [Reading the results](#reading-the-results-traces-funnel-routine)** (how to read a trace, the funnel metric, the routine after every experiment).
-History of all experiments: `PERFORMANCE_LOG.md` (generated). Reference report: `EDA_Report.ipynb`.
 
 ## Experiments
 Every result belongs to an **experiment**: one set of fixed conditions (model, temperature, prompts, data
@@ -24,7 +21,8 @@ experiments/
     prompts/                 copy of every prompt exactly as it was used
     cases/s101/
       trace.jsonl            one line per action (llm, exec, result), with version and stage
-      v1/                    response.md  code.py  notebook.ipynb  stdout.txt  stderr.txt  outputs/  result.json
+      v1/                    response.md  code.py  notebook.ipynb  stdout.txt  stderr.txt  result.json (our evaluation)
+        outputs/             what the model's code saved: *.png, results.json (its answer, v3)
   E02_2a_schema/             base: E01_baseline_schema
     cases/s101/2a/           + feedback.md (what the critic saw)  critique.md
   _legacy/                   old runs/ sorted by prompt (tools/migrate_runs.py)
@@ -46,6 +44,8 @@ python step1_baseline.py --exp E01_baseline_blind --seeds 101-105          # low
 
 # Baseline v2: notebook prompt + runner shims (display, numpy-safe json)
 python step1_baseline.py --exp <new_id> --schema --prompt step1_baseline_v2 --shims --seeds 101-105 --change "..."
+# Baseline v3 (current): like v2, but the results are saved to /outputs/results.json instead of a RESULTS_JSON line
+python step1_baseline.py --exp <new_id> --schema --prompt step1_baseline_v3 --shims --seeds 101-105 --change "..."
 # Same code again with / without shims, no LLM call (measures the shims alone)
 python step1_baseline.py --exp <new_id> --rerun-from <baseline_id> --change "..."            # shims off
 python step1_baseline.py --exp <new_id> --rerun-from <baseline_id> --shims --change "..."    # shims on
@@ -97,8 +97,7 @@ Tests (no Ollama or Docker needed): `python tests/test_<name>.py`, e.g. `python 
 
 ## Reading the results (traces, funnel, routine)
 
-Goal: at any moment you can say **how the model performs, what changed, and what came out after the change**.
-Three things hold everything:
+With the below listed files one can check on **how the model performs, what changed, and what resulted after the change**:
 
 | File | What it is | Who writes it |
 |---|---|---|
@@ -134,9 +133,15 @@ Then, for the seeds that look interesting, open `cases/s<seed>/v1/`:
 | `code.py` | the exact code that was run |
 | `stdout.txt` / `stderr.txt` | what the code printed / why it crashed |
 | `outputs/*.png` | the plots it saved |
+| `outputs/results.json` | **the model's answer** (baseline v3 and later): the 7 values its code computed and saved. Not checked, may be wrong |
 | `notebook.ipynb` | the generated code as a notebook (only if the model used the `# %%` format; code only, no outputs) |
-| `result.json` | the evaluation: exit code, error category, funnel, checks per fact, cost |
+| `result.json` | **our evaluation** of the run, written by `src/evaluate.py`: exit code, error category, funnel, which of the model's values are correct (`checks`, `fact_score`), report quality, cost |
 | `feedback.md`, `critique.md` (levels 2a-2c only) | what the critic was shown and what it answered |
+
+`outputs/results.json` and `result.json` are two different files with similar names. Everything in `outputs/` was
+produced by the model's code inside the sandbox (plots and its answer). Everything directly in the version folder was
+written by us (the extracted code, the captured output, the evaluation). `result.json` grades the content of
+`outputs/results.json` (or, before baseline v3, of the `RESULTS_JSON` line in `stdout.txt`).
 
 ### 3. Reading a trace: a real example (E01, seed 101)
 
