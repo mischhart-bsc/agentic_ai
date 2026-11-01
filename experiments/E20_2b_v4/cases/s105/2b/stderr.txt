@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 122, in <module>
+    f"From February 2021 to February 2026, the monthly number of solar flares showed a clear evolution, with the busiest month being {busiest_month} with {busiest_month_count} flares.\n"
+                                                                                                                                      ^^^^^^^^^^^^^
+NameError: name 'busiest_month' is not defined

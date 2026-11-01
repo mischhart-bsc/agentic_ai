@@ -1,0 +1,2 @@
+In addition, an independent script computed the requested facts directly from the CSV and compared them with your results (RESULTS_JSON or /outputs/results.json). It reports for each key only whether your value is supported, refuted or missing; it does not reveal the correct values.
+Independent check of what your report TEXT states (the same facts, read from the printed prose; the correct values are not revealed):

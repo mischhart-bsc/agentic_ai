@@ -1,0 +1,11 @@
+- The code fails during execution due to a format error in string formatting: `f'{x:02d}'` is applied to a `str` column (`df['month']`), which contains non-numeric values (e.g., `NaN` or invalid types), causing `ValueError: Unknown format code 'd' for object of type 'str'`.
+- The `month` column is derived from `start_UTC`, which is parsed as datetime, but the `month` attribute (an integer) may be `NaN` for invalid or missing timestamps, and the string formatting operation assumes numeric input.
+- The data type of `df['month']` after `dt.month` is `int64`, so the error is not from the column type itself but from the incorrect use of `astype(str)` before applying `f'{x:02d}'` — this is redundant and invalid because `dt.month` returns integers.
+- The line `df['month'].astype(str).apply(lambda x: f'{x:02d}')` is incorrect: `astype(str)` is unnecessary and unsafe, and even if valid, `f'{x:02d}'` expects an integer, not a string, leading to the error.
+- The code does not properly handle missing or invalid timestamps in `start_UTC`, which may create `NaN` months, and this is not handled gracefully.
+- The plot saving and JSON output are not triggered due to the failure in early steps, so no artifacts are saved.
+- The final summary and JSON output are not printed or saved because the execution fails before reaching those steps.
+- The research question is correctly framed, but the implementation is flawed at a fundamental level — the parsing and formatting of months from datetime columns is incorrect and will not run in a real environment.
+- The strong flare classification (GOES B4+) uses `goes_estimated_min_flux`, but the data type conversion (`pd.to_numeric`) may fail for non-numeric entries, which are not handled with error robustness.
+- The logic for "strong share increasing" checks years from 2021 to 2025, but if any year has no flares, the percentage is undefined, and the code does not guard against such edge cases.
+- The code does not validate that `year` and `month` are properly extracted from `start_UTC` — the failure in parsing may be due to invalid timestamps, and no validation is performed before using them.

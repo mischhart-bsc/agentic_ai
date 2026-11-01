@@ -1,0 +1,16 @@
+- The code correctly parses the data and extracts start_UTC into datetime, properly groups by month and year, and defines strong flares based on GOES class.
+- The monthly flare count and strong flare share plots are generated and saved correctly, with appropriate formatting and labels.
+- The summary text and JSON output are correctly formatted and include all required fields.
+- The computed "n_months", "busiest_month", "busiest_month_count", and "strong_share_increasing" are supported by the independent check.
+- However, the values for "flares_per_year", "n_strong", and "pct_strong_per_year" are **refuted** by the independent computation, indicating a critical error in the aggregation or calculation.
+- The strong share is computed as a ratio per year but the values show a non-monotonic trend (e.g., 2024 drops from 2023), contradicting the claim that "the share rises steadily" — this is refuted by the independent check.
+- The code uses `yearly_data['strong_share']` but does not ensure that the values are properly computed from the actual counts; it may have used incorrect grouping or misapplied the `strong_count` calculation.
+- The `flares_per_year` dictionary contains `np.int64` keys, which are not valid keys in a Python dictionary; the independent check shows a different value, implying a miscalculation.
+- The `n_strong` value is computed as the sum of `strong_count`, but the independent check refutes this, suggesting an incorrect aggregation.
+- The "strong_share_increasing" flag is incorrectly set to `True` based on a comparison of the values in the list, but the independent check refutes this, indicating a flawed trend analysis.
+- The report text claims "the share of strong flares rose steadily", which is contradicted by the actual data and independent computation — this is a factual error.
+- The code does not validate that the `GOES_class_time_of_flare` is actually used correctly for filtering strong flares; the condition `str.startswith('M') | str.startswith('X')` is correct, but the data might contain missing values or invalid strings.
+- The independent computation shows that the strong share does not increase year by year, yet the code claims it does — this is a significant error in both logic and reporting.
+- The code does not account for missing values or invalid entries in the GOES class field, which could skew the strong flare count.
+- The use of `np.int64` and `np.float64` in dictionary keys is invalid — JSON will fail to parse unless converted to integers/floats, but even more importantly, these values are not correct per independent check.
+- The final JSON output is valid, but the data it contains is incorrect — this violates the requirement to produce correct results.

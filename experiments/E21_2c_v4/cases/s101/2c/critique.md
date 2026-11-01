@@ -1,0 +1,13 @@
+- The code fails at runtime due to an attribute error when trying to access `.year` and `.month` on `busiest_month`, which is a NumPy integer (from `np.argmax`) rather than a pandas Period or datetime object. This indicates a critical bug in the logic that identifies the busiest month.
+- The variable `busiest_month` is incorrectly assigned as `monthly_flare_counts.idxmax(axis=1).idxmax()`, which returns a scalar index position (int), not a period or datetime object with year-month attributes.
+- The `monthly_flare_counts` pivot table is correctly constructed, but the indexing operation is flawed—`idxmax(axis=1)` returns an integer index, not a Period, so accessing `.year` and `.month` is invalid.
+- The `pct_strong_per_year` dictionary is built only from years 2022–2025, but the data includes flares from 2021–2026, and no validation is done to ensure that the years in the dataset are correctly filtered or present.
+- The `flares_per_year` dictionary is constructed from `annual_flare_count`, but the years in that dataset are not verified to cover only 2022–2025, and the values are not properly checked for consistency with the filtered subset.
+- The `strong_share_increasing` flag is computed only on the subset 2022–2025, but the condition is incorrectly applied—`pct_strong_per_year` has only one value per year, yet the comparison loop runs on a list of years that may not be in sequence or may be missing years.
+- The `results.json` file is never written due to the failure in the execution chain—any output is unreachable because the script crashes before reaching the save step.
+- No plots are saved because the plotting cells are executed after the crash, and the crash occurs before any plot is rendered or saved.
+- The summary text is printed, but it references values (like busiest month, number of strong flares) that are not computed correctly or at all, making the output invalid and unverifiable.
+- The code uses `monthly_flare_counts` with a pivot table but does not convert the index properly to a Period or datetime to extract year and month attributes.
+- The variable `busiest_month` is used in a way that assumes it is a Period object, but it is actually a Python integer.
+- The total number of months (`n_months`) is computed from the pivot table, but the shape of the table is not verified—missing validation that it has 12 months per year across valid years.
+- The independent check confirms that all required values are missing or unsupported, indicating the entire result section is invalid.

@@ -1,0 +1,11 @@
+- The code attempts to create `end_date = pd.Timestamp('2026-02-29')`, which is invalid because February 2026 does not have 29 days. This causes a `ValueError` when parsing the date, leading to the entire script failing with exit code 1.
+- The error occurs during parsing and is not caught or handled, so the script terminates prematurely.
+- The data filtering step using `df_filtered = df[(df['start_UTC'] >= start_date) & (df['start_UTC'] <= end_date)]` will not execute due to the failed date parsing, meaning no actual data is processed.
+- The code does not validate or sanitize date inputs; it assumes a valid date string, but February 29th is not valid in any non-leap year.
+- The final summary and JSON output are never generated because the script crashes before reaching those sections.
+- The plots are not saved because the execution fails before the plotting code runs.
+- The research question specifies a period from February 2021 to February 2026 inclusive, but the code incorrectly uses a non-existent date (2026-02-29) as the end boundary, violating both logic and date validity.
+- The solution fails to correctly interpret the time range: the period should be from February 2021 to February 2026, which ends on February 2026, not on a non-existent 29th. The correct end date should be '2026-02-28' (or '2026-02-28T23:59:59.999' to be safe), not '2026-02-29'.
+- No error handling or validation is present to prevent such a failure.
+- The computed variables (e.g., yearly flare counts, strong flare share) are not computed at all because the data filtering fails early.
+- The final results are not produced, and no output is generated, violating the requirement to "print your findings" and "save your results with json.dump".

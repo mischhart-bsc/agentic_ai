@@ -1,0 +1,3 @@
+Your code was executed in a sandbox. These are the artifacts of that run (exit code, printed output, error, saved plots):
+Run observations (facts about the run, no judgement):
+Use this information in your review.
