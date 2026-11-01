@@ -18,7 +18,7 @@ import json
 
 import config
 from src.evaluate import evaluate_version, summary_line
-from src.experiment import Experiment, load, parse_seeds
+from src.experiment import Experiment, change_missing, load, parse_seeds
 from src.feedback import build_feedback, prompt_texts
 from src.llm import chat
 from src.runner import run_code
@@ -44,7 +44,7 @@ def load_v1(base_id, seed):
     return {"dir": v1_dir, "messages": gen[-1]["messages"], "answer": gen[-1]["response"], "result": result}
 
 
-def reflect(case, base_id, v1, level):
+def reflect(case, base_id, v1, level, shims=False):
     """critique -> revise -> execute -> evaluate for one seed. Returns the result of this level."""
     ver = case.version(level, parent=f"{base_id}/s{case.seed}/v1")
     feedback = build_feedback(level, v1["dir"])
@@ -66,7 +66,7 @@ def reflect(case, base_id, v1, level):
 
     ver.save("response.md", answer)
     code = extract_code(answer)
-    res = run_code(ver, code) if code is not None else None
+    res = run_code(ver, code, shims=shims) if code is not None else None
     return evaluate_version(ver, code, res)
 
 
@@ -76,8 +76,11 @@ if __name__ == "__main__":
     ap.add_argument("--level", required=True, choices=LEVELS)
     ap.add_argument("--base", required=True, help="baseline experiment whose v1 is reflected on")
     ap.add_argument("--seeds", help="default: all seeds of the base, e.g. 101-105")
+    ap.add_argument("--change", default="", help="what is different from the experiment you compare with (required for a new experiment)")
     ap.add_argument("--note", default="", help="free text for the manifest")
     args = ap.parse_args()
+    if change_missing(args.exp, args.change):
+        ap.error("--change is required for a new experiment: one sentence on what is different from the one you compare with")
 
     base = load(args.base)
     if base["level"] != "baseline":
@@ -89,7 +92,7 @@ if __name__ == "__main__":
 
     prompts = {"critique": CRITIQUE, "revise": REVISE, **prompt_texts(args.level)}
     exp = Experiment(args.exp, args.level, prompts, seeds, base=args.base,
-                     data_context=base["data_context"], note=args.note)
+                     data_context=base["data_context"], runner_shims=base.get("runner_shims", False), change=args.change, note=args.note)
 
     print(f"Experiment {exp.id}: level {args.level} on {args.base}, seeds {exp.seeds}")
     for seed in exp.seeds:
@@ -100,7 +103,7 @@ if __name__ == "__main__":
         if v1 is None:
             print(f"s{seed} {args.level}  skipped: v1 of {args.base} has no usable answer")
             continue
-        print(summary_line(reflect(Case(exp, seed), args.base, v1, args.level)))
+        print(summary_line(reflect(Case(exp, seed), args.base, v1, args.level, shims=exp.manifest["runner_shims"])))
     exp.finish()
     print(f"\nDone: {exp.dir}")
     

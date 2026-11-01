@@ -186,3 +186,49 @@ received); `runs/` stays unchanged. Temperature, git commit and seed were not lo
 - Decide whether `results/` goes into the repo (generated; proposal: `.gitignore`).
 - `analyze_runs.py` / `evaluate_reports.py` still read only `runs/`; port `report_eval` flags to experiments
   or retire them after the migration.
+
+## Baseline v2, runner helpers, consolidation
+
+### 16. Decisions
+- **Baseline v2 = new prompt + runner shims, measured separately.** The prompt (`prompts/step1_baseline_v2.txt`) asks for a
+  notebook in `# %%` format and allows scipy; it does not list the sections (data quality, test, conclusion) and does not
+  define "strong": the model has to find and decide these itself, as the large reference model did.
+- **Runner shims** (`SHIM` in `src/runner.py`): `display` exists, `json.dumps` accepts numpy/pandas values (also as keys). They hide two
+  model errors, so they are a recorded condition (manifest `runner_shims`, `shim_hash`).
+- **The effects are measured separately:** `step1_baseline.py --rerun-from` runs the code of an existing baseline again with or
+  without shims, without an LLM call, so a difference is caused by the environment alone (2x2: old/new prompt x shims off/on).
+- **Reflection** runs on the frozen v1 of one baseline; the shims are inherited from that baseline.
+
+### 17. Consolidation (build on Mischa's structure, keep everything that is needed)
+Rule: `src/evaluate.py` and `analyze.py` (Mischa) are the base; unique logic of the other files moved into them, only duplicates
+were dropped. Verified on the old data before the old files were removed:
+- `report_eval.py` (Jan) -> `src/evaluate.py` (`report_quality`): execution, completeness, correctness, method, plots, flags,
+  weighted overall. What `evaluate.py` already had (exit code, JSON found/strict, fact score, error category) is read, not computed twice.
+  Re-scoring the 40 old runs of `evaluation_summary.csv` gives **identical** execution, completeness, correctness and plots scores;
+  `method` differs on purpose: the GOES column check has weight 0 (hint only), because both definitions of "strong" are allowed.
+- Report precision: one function (`checker.report_precision`) with Jan's filter (numbers <= 12 are no claims). On real outputs the old
+  version counted "3 months" as a correct number (0.667 where the only real number was wrong).
+- `analyze_runs.py` (Mischa, Vanessa) -> `analyze.py`: per-fact accuracy, median/min/max, truncated, plots, precision, exec time, LLM calls
+  (`PERFORMANCE_LOG.md` sections 4-5). The 42 old runs with a result are identical in `experiments/_legacy` (exit code, facts, plots, JSON,
+  tokens, seconds), so `runs/` stays as data and the script is no longer needed.
+- `evaluate_reports.py` (Jan, Vanessa) -> `analyze.py`: `--judge`, `--judge-code`, `--human-template`, `--agreement` on versions of an experiment.
+  `evaluation_summary.csv` stays as the history of the old scoring.
+- `reexecute.py` -> `step1_baseline.py --rerun-from`; `src/notebook.py` -> `src/evaluate.py`; `trace_view.py` -> `analyze.py --trace`;
+  `HOWTO.md` -> README; the tests of `test_report_eval.py` and `test_notebook.py` -> `tests/test_evaluate.py`.
+- The runner helpers are a text constant (`SHIM`) in `src/runner.py`: no extra file, hash in the manifest.
+
+### 18. Working rule
+Never change `src/` while an experiment is running: a running process re-reads files such as the shim at every call.
+The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `evaluate_reports.py`, `reexecute.py`,
+`src/notebook.py` and their tests are merged into `src/evaluate.py`, `analyze.py`, `step1_baseline.py` and `tests/test_evaluate.py`;
+`evaluate_reports.py --run / --details` became `analyze.py --run / --details`.
+
+### 19. Measurement gap: facts read from the report text
+- Problem: all facts were measured through the `RESULTS_JSON` line. A script that runs but does not print it scores 0 %,
+  although its text may be right or wrong; the metric was blind there.
+- Decision (way 1): `text_facts()` in `src/evaluate.py` reads what the prose says (months, busiest month and its count, number of
+  strong flares, trend) and compares it with the ground truth. `flares_per_year` and `pct_strong_per_year` are not readable from prose.
+  It is an additional measure (`text_fact_score`, `PERFORMANCE_LOG.md` section 4b); `fact_score`, the funnel and the five report
+  dimensions are unchanged (the three test cases give the same scores as before).
+- A repair of the missing line (a second model call that reminds the model of the format) is not part of the baseline; it belongs to
+  the reflection levels.

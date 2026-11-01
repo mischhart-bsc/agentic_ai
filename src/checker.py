@@ -125,14 +125,23 @@ def _gt_numbers(obj):
 GT_NUMS = _gt_numbers({k: v for k, v in GT.items() if "WRONG" not in k})
 
 
+def numbers_in(text):
+    """Numbers in a text, without years, months (2024-09) and small counting words (<= 12): '3 months' is no claim."""
+    text = re.sub(r"\b\d{4}-\d{2}\b", "", text or "")
+    out = []
+    for x in re.findall(r"(?<![\w.])\d[\d,']*(?:\.\d+)?", text):
+        try:
+            n = float(x.replace(",", "").replace("'", "").rstrip("."))
+        except ValueError:
+            continue
+        if n not in YEARS and not (n.is_integer() and n <= 12):
+            out.append(n)
+    return out
+
+
 def report_precision(stdout):
-    """Anteil der Zahlen im Report-Text, die zu einem Ground-Truth-Wert passen.
-    None, wenn der Text keine Zahlen enthaelt."""
-    text = (stdout or "").split("RESULTS_JSON:")[0]
-    text = re.sub(r"\b\d{4}-\d{2}\b", "", text)        # Monate wie 2024-09 entfernen
-    nums = [float(x.replace(",", "").replace("'", "").rstrip("."))
-            for x in re.findall(r"\d[\d,']*\.?\d*", text)]
-    nums = [n for n in nums if n not in YEARS]          # Jahreszahlen ignorieren
+    """Share of the numbers in the report text that match a ground-truth value. None if the text has no numbers."""
+    nums = numbers_in((stdout or "").split("RESULTS_JSON:")[0])
     if not nums:
         return None
     ok = sum(any(abs(n - g) <= max(0.02 * abs(g), 0.1) for g in GT_NUMS) for n in nums)

@@ -1,16 +1,24 @@
-"""Offline test for src/evaluate.py (no Ollama, no Docker needed).
+"""Offline test for src/evaluate.py: error categories, result.json, funnel, report quality (Jan's three cases),
+notebook conversion and the runner shims (no Ollama, no Docker needed).
 
 Run:  python tests/test_evaluate.py
 """
 import json
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import matplotlib  # noqa: E402
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+
 from src.checker import GT  # noqa: E402
-from src.evaluate import error_info, evaluate_version, summary_line  # noqa: E402
+from src.runner import SHIM  # noqa: E402
+from src.evaluate import (FUNNEL, error_info, evaluate_version, funnel, py_to_ipynb,  # noqa: E402
+                          report_quality_for_dir, summary_line, text_facts)
 from src.experiment import Experiment  # noqa: E402
 from src.trace import Case  # noqa: E402
 
@@ -97,7 +105,196 @@ def test_evaluate_version():
         print(summary_line(r2))
 
 
+def test_funnel():
+    """Depth = number of stages passed in a row; a late stage alone does not count."""
+    base = {"llm_error": None, "code_found": True, "exit_code": 0, "results_json_found": True,
+            "results_json_strict": True, "checks": {"n_months": True, "busiest_month": False}}
+    full_json = "RESULTS_JSON: " + json.dumps({k: 1 for k in ("n_months", "busiest_month", "busiest_month_count",
+                "flares_per_year", "n_strong", "pct_strong_per_year", "strong_share_increasing")})
+    f = funnel(base, full_json)
+    assert f["depth"] == 7 and f["stages"]["any_fact"] and not f["stages"]["all_facts"]   # right up to "some facts"
+    assert funnel({**base, "checks": {"n_months": True}}, full_json)["depth"] == 8          # everything right
+    assert funnel({**base, "exit_code": 1}, "")["depth"] == 2                                # crashed: code found, did not run
+    assert funnel({**base, "exit_code": 1}, full_json)["depth"] == 2                         # later stages do not count after a crash
+    assert funnel({**base, "code_found": False, "exit_code": None}, "")["depth"] == 1       # answer without code block
+    assert funnel({**base, "llm_error": "TimeoutError", "code_found": False}, "")["depth"] == 0
+    assert funnel(base, "RESULTS_JSON: {\"n_months\": 61}")["stages"]["keys_complete"] is False
+    assert len(f["stages"]) == len(FUNNEL)
+
+
+GOLD_CODE = '''
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("/data/stix_flarelist.csv")
+df["start"] = pd.to_datetime(df["start_UTC"], format="ISO8601")
+monthly = df.set_index("start").resample("MS").size()
+df["strong"] = df["goes_estimated_mean_class"].str[0].isin(["M", "X"])
+pct = df.groupby(df["start"].dt.year)["strong"].mean() * 100
+increasing = bool(pct.loc[2022:2025].is_monotonic_increasing)
+plt.plot(monthly.index, monthly.values)
+plt.title("Flares per month"); plt.xlabel("Month"); plt.ylabel("Flares")
+plt.savefig("/outputs/monthly.png")
+plt.figure(); plt.bar(pct.index, pct.values)
+plt.title("Share of strong flares"); plt.xlabel("Year"); plt.ylabel("%")
+plt.savefig("/outputs/share.png")
+print(f"The busiest month was {monthly.idxmax():%Y-%m} with {monthly.max()} flares.")
+'''
+
+GOLD_REPORT = (
+    "Between February 2021 and February 2026 the catalogue contains 33076 flares in 61 months. "
+    "Monthly flare counts rose strongly with the solar cycle and peaked in 2024-09 with 1724 flares. "
+    "Flares per year were 4787 in 2022, 6469 in 2023, 12330 in 2024 and 7662 in 2025. "
+    "In total 1637 flares were strong (M or X class). "
+    "The yearly share of strong flares was 5.16% in 2022, 5.39% in 2023, 5.16% in 2024 and 3.86% in 2025. "
+    "The share of strong flares did not increase steadily; it fluctuated and dropped in 2025. "
+    "Note that 2021 and 2026 are partial years, so their values are less reliable."
+)
+
+GOLD_JSON = {
+    "n_months": GT["n_months"], "busiest_month": GT["busiest_month"],
+    "busiest_month_count": GT["busiest_month_count"], "flares_per_year": GT["flares_per_year"],
+    "n_strong": GT["n_strong_estimated_MX"], "pct_strong_per_year": GT["pct_strong_per_year"],
+    "strong_share_increasing": GT["strong_share_increasing_full_years"],
+}
+
+HALLU_CODE = '''
+import json
+import pandas as pd
+df = pd.read_csv("/data/stix_flarelist.csv")
+df["t"] = pd.to_datetime(df["peak_UTC"])
+df = df[(df["t"] >= "2021-02-01") & (df["t"] <= "2026-02-01")]
+df["strong"] = df["GOES_class_time_of_flare"].str.contains("M|X", na=False)
+report = ("The monthly number of solar flares showed a steady increase, with the busiest month being "
+          "2023-08 with 124 flares. Strong flares rose from 20% to 35% by 2026.")
+print(report)
+'''
+
+HALLU_REPORT = ("The monthly number of solar flares showed a steady increase, with the busiest month being "
+                "2023-08 with 124 flares. Strong flares rose from 20% to 35% by 2026.")
+
+HALLU_JSON = {"n_months": 60, "busiest_month": "2023-08", "busiest_month_count": 124,
+              "flares_per_year": {"2021": 45}, "n_strong": 300,
+              "pct_strong_per_year": GT["pct_strong_per_year_WRONG_goes_time_col"],
+              "strong_share_increasing": True}
+
+CRASH_CODE = 'import pandas as pd\ndf = pd.read_csv("/data/stix_flarelist.csv")\ndf["date"] = pd.to_datetime(df["date"])\n' + "x = 1\n" * 40
+
+
+
+def scored(tmp, name, code, stdout, exit_code, stderr="", n_plots=0):
+    """Run a made-up version through evaluate_version and return its result['report']."""
+    exp = Experiment(f"E_{name}", "baseline", {"generate": "x"}, [101], data_context="schema", root=tmp)
+    v = Case(exp, 101).version("v1")
+    v.log("llm", label="generate", prompt_tokens=1000, completion_tokens=1000, seconds=1, finish_reason="stop")
+    for i in range(n_plots):
+        plt.figure()
+        plt.plot([1, 2, 3], [3, 1, 2])
+        plt.title(f"plot {i}")
+        plt.savefig(v.dir / "outputs" / f"p{i}.png")
+        plt.close()
+    v.save_code(code)                                      # run_code does this in the real flow
+    res = {"exit_code": exit_code, "stdout": stdout, "stderr": stderr}
+    return evaluate_version(v, code, res)["report"], v
+
+
+def test_report_quality():
+    """Three made-up versions (from Jan's report_eval test): gold, hallucinated, early crash."""
+    with tempfile.TemporaryDirectory() as tmp:
+        gold, gv = scored(tmp, "gold", GOLD_CODE, GOLD_REPORT + "\nRESULTS_JSON: " + json.dumps(GOLD_JSON), 0, n_plots=2)
+        hallu, _ = scored(tmp, "hallu", HALLU_CODE, HALLU_REPORT + "\nRESULTS_JSON: " + json.dumps(HALLU_JSON), 0, n_plots=1)
+        crash, _ = scored(tmp, "crash", CRASH_CODE, "", 1,
+                          stderr='Traceback:\n  File "/code/code.py", line 3, in <module>\nKeyError: \'date\'')
+        again = report_quality_for_dir(gv.dir)              # re-scoring a stored folder gives the same numbers
+    for name, ev in (("gold", gold), ("hallu", hallu), ("crash", crash)):
+        print(f"{name:<6} overall={ev['overall']}  {ev['dimensions']}")
+
+    d = gold["dimensions"]
+    assert d["correctness"] == 1.0 and d["method"] == 1.0 and d["completeness"] >= 0.95, gold["details"]
+    assert gold["overall"] >= 0.95
+    assert gold["details"]["correctness"]["claims"] == {"busiest_month": True, "strong_share_trend": True}
+    assert again["dimensions"] == gold["dimensions"] and again["flags"] == gold["flags"]
+
+    assert hallu["dimensions"]["execution"] == 1.0
+    assert hallu["dimensions"]["correctness"] <= 0.2, hallu["details"]["correctness"]
+    assert hallu["details"]["correctness"]["claims"] == {"busiest_month": False, "strong_share_trend": False}
+    assert "Report-Text fest im Code (nicht aus Ergebnissen erzeugt)" in hallu["flags"]
+    # the observed GOES column is only a hint now (both definitions of "strong" are allowed): no score penalty
+    assert "Hinweis: Prozente entsprechen der GOES-Spalte der Erdseite" in hallu["flags"]
+    assert hallu["details"]["method"]["goes_column"] == 1.0
+    assert hallu["overall"] < 0.5
+
+    assert crash["dimensions"]["execution"] < 0.1       # crash in line 3 of ~43
+    assert crash["overall"] < hallu["overall"] < gold["overall"]
+
+
+def test_text_facts():
+    """Facts read from the report text (when RESULTS_JSON is missing)."""
+    gold = text_facts(GOLD_REPORT)
+    assert gold == {"n_months": True, "busiest_month": True, "busiest_month_count": True, "n_strong": True,
+                    "strong_share_increasing": True}, gold
+
+    # wrong and typed-in report of a model that never printed RESULTS_JSON
+    wrong = text_facts("Between 2021 and 2026 the flare count grew steadily. The peak monthly flare count occurred in "
+                       "February 2021, the first year of observation. The proportion of strong flares rose from 2022 to 2025. "
+                       "The share of strong flares increased from year to year.")
+    assert wrong["busiest_month"] is False and wrong["strong_share_increasing"] is False, wrong
+    assert wrong["n_months"] is None and wrong["n_strong"] is None            # the text says nothing about them
+
+    assert set(text_facts("").values()) == {None}                              # no text -> nothing readable
+    assert text_facts("There were 60 months in total.")["n_months"] is False   # a wrong number is False, not None
+    # the score is part of the correctness details; the JSON-based fact_score is not touched by it
+    with tempfile.TemporaryDirectory() as tmp:
+        rep, _ = scored(tmp, "tf", GOLD_CODE, GOLD_REPORT, 0, n_plots=2)       # report text but no RESULTS_JSON
+    assert rep["details"]["correctness"]["fact_score"] == 0.0
+    assert rep["details"]["correctness"]["text_fact_score"] == 1.0
+
+
+SCRIPT = """# %% [markdown]
+# # Title
+# some text
+# %%
+import pandas as pd
+x = 1
+# %%
+print(x)
+"""
+
+
+def test_notebook_conversion():
+    nb = json.loads(py_to_ipynb(SCRIPT))
+    assert [c["cell_type"] for c in nb["cells"]] == ["markdown", "code", "code"]
+    assert "".join(nb["cells"][0]["source"]) == "# Title\nsome text"
+    assert "".join(nb["cells"][1]["source"]) == "import pandas as pd\nx = 1"
+    assert nb["nbformat"] == 4 and nb["cells"][2]["outputs"] == []
+    assert [c["cell_type"] for c in json.loads(py_to_ipynb("print(1)"))["cells"]] == ["code"]  # no marker: one code cell
+    with tempfile.TemporaryDirectory() as tmp:           # evaluate_version saves it next to code.py
+        exp = Experiment("E_nb", "baseline", {"generate": "x"}, [101], data_context="schema", root=tmp)
+        v = Case(exp, 101).version("v1")
+        evaluate_version(v, SCRIPT, {"exit_code": 0, "stdout": "", "stderr": ""})
+        assert (v.dir / "notebook.ipynb").exists()
+
+
+def test_shim():
+    """The shim text (src/runner.SHIM) in a plain Python process: numpy numbers (also as dict keys) become JSON, display exists."""
+    prog = (SHIM + "\nimport json\n"
+            "import numpy as np, pandas as pd\n"
+            "print(json.dumps({'a': np.int64(3), 'b': np.bool_(True), 'c': pd.Timestamp('2024-01-02'), 'd': np.arange(2), np.int64(7): 1}))\n"
+            "display('shown')\n")
+    root = Path(__file__).resolve().parent.parent
+    venv = root / ".venv" / "bin" / "python"
+    out = subprocess.run([str(venv) if venv.exists() else sys.executable, "-c", prog], cwd=root, capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    assert json.loads(out.stdout.splitlines()[0]) == {"a": 3, "b": True, "c": "2024-01-02 00:00:00", "d": [0, 1], "7": 1}
+    assert out.stdout.splitlines()[1] == "shown"
+
+
 if __name__ == "__main__":
     test_categories()
     test_evaluate_version()
+    test_funnel()
+    test_report_quality()
+    test_text_facts()
+    test_notebook_conversion()
+    test_shim()
     print("OK - evaluate checks passed")

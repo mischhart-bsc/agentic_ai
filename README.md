@@ -8,6 +8,9 @@
 
 Docker Desktop and Ollama must both be running for every experiment.
 
+**New here? Read [Reading the results](#reading-the-results-traces-funnel-routine)** (how to read a trace, the funnel metric, the routine after every experiment).
+History of all experiments: `PERFORMANCE_LOG.md` (generated). Reference report: `EDA_Report.ipynb`.
+
 ## Experiments
 Every result belongs to an **experiment**: one set of fixed conditions (model, temperature, prompts, data
 context), run over several **seeds**. One seed is one **case**; a case holds one folder per **version** of the
@@ -21,7 +24,7 @@ experiments/
     prompts/                 copy of every prompt exactly as it was used
     cases/s101/
       trace.jsonl            one line per action (llm, exec, result), with version and stage
-      v1/                    response.md  code.py  stdout.txt  stderr.txt  outputs/  result.json
+      v1/                    response.md  code.py  notebook.ipynb  stdout.txt  stderr.txt  outputs/  result.json
   E02_2a_schema/             base: E01_baseline_schema
     cases/s101/2a/           + feedback.md (what the critic saw)  critique.md
   _legacy/                   old runs/ sorted by prompt (tools/migrate_runs.py)
@@ -38,17 +41,25 @@ Rules:
 ## Workflow
 ```
 # Step 1: baseline (one generate per seed)
-python step1_baseline.py --exp E01_baseline_schema --schema --seeds 101-105 --note "..."
+python step1_baseline.py --exp E01_baseline_schema --schema --seeds 101-105 --change "what is different"
 python step1_baseline.py --exp E01_baseline_blind --seeds 101-105          # lower bound, no schema
 
-# Step 2: reflection levels on the frozen v1 of a baseline
+# Baseline v2: notebook prompt + runner shims (display, numpy-safe json)
+python step1_baseline.py --exp <new_id> --schema --prompt step1_baseline_v2 --shims --seeds 101-105 --change "..."
+# Same code again with / without shims, no LLM call (measures the shims alone)
+python step1_baseline.py --exp <new_id> --rerun-from <baseline_id> --change "..."            # shims off
+python step1_baseline.py --exp <new_id> --rerun-from <baseline_id> --shims --change "..."    # shims on
+
+# Step 2: reflection levels on the frozen v1 of a baseline (shims are inherited from the base)
 python step2_reflection.py --exp E02_2a_schema --level 2a --base E01_baseline_schema
 python step2_reflection.py --exp E03_2b_schema --level 2b --base E01_baseline_schema
 python step2_reflection.py --exp E04_2c_schema --level 2c --base E01_baseline_schema
 
 # Analysis: results/versions.csv + results/comparison_<base>.html (seed x level, transitions, cost)
-python analyze.py
+python analyze.py                                   # also rebuilds PERFORMANCE_LOG.md
 python analyze.py --base E01_baseline_schema
+python analyze.py --trace E01_baseline_schema 101   # one trace as a story (--full: with prompts and answers)
+python analyze.py --run E01_baseline_schema 101     # all details of one version (--details: one line per version)
 ```
 
 What the critic sees per level (`src/feedback.py`):
@@ -69,17 +80,153 @@ the version folders for code, output, plots and `result.json`.
 | `src/experiment.py` | experiment folder and manifest, resume protection |
 | `src/trace.py` | `Case` (one seed) and `Version` (one code version); old `Run` for `runs/` |
 | `src/llm.py` | Ollama call with a hard wall-clock limit (`LLM_MAX_SECONDS`), seed passed through |
-| `src/runner.py` | executes code in the Docker sandbox, plots go to the version's `outputs/` |
-| `src/evaluate.py` | one evaluation for every step: checker facts, error category, cost per version |
+| `src/evaluate.py` | one evaluation for every step: checker facts, error category, funnel, report quality (5 dimensions), cost, `notebook.ipynb` |
 | `src/feedback.py` | what the critic sees per reflection level |
 | `src/checker.py` | compares RESULTS_JSON with `ground_truth.json` |
 | `src/schema.py` | neutral data schema for the prompt |
-| `analyze.py` | CSV and comparison table over all experiments |
 | `tools/migrate_runs.py` | old `runs/` -> `experiments/_legacy/` (`--apply` to write; runs/ stays unchanged) |
+| `src/runner.py` | executes code in the Docker sandbox, plots go to the version's `outputs/`; contains the runner helpers (`SHIM`: `display`, numpy-safe `json.dumps`) |
+| `analyze.py` | CSV, comparison tables, `PERFORMANCE_LOG.md`, `--trace`, judges and human scores |
 
 Tests (no Ollama or Docker needed): `python tests/test_<name>.py`, e.g. `python tests/test_step2.py`.
 
 ## Older tools (for runs/ before the experiment structure)
-- `python analyze_runs.py [--details]` – metrics per config of the old runs
-- `python evaluate_reports.py [--details | --run <id>]` – report quality, judges
+- The old `analyze_runs.py` and `evaluate_reports.py` are part of `analyze.py` now (`--legacy` includes the old runs, `--judge`, `--judge-code`,
+  `--human-template`, `--agreement` for the judges). Their old output is kept as `evaluation_summary.csv` (history).
 - Log of decisions and results: `docs/logbook.md`, checklist: `arbeitsprotokoll.txt`
+
+## Reading the results (traces, funnel, routine)
+
+Goal: at any moment you can say **how the model performs, what changed, and what came out after the change**.
+Three things hold everything:
+
+| File | What it is | Who writes it |
+|---|---|---|
+| `PERFORMANCE_LOG.md` | one row per experiment: what changed, funnel, facts, cost, conditions | generated by `python analyze.py` |
+| `EDA_Report.ipynb` | the reference report: what a good answer to the research question looks like | by hand, cell by cell |
+| `experiments/<id>/` | the raw evidence (code, output, traces) behind every row of the log | written by the step scripts |
+
+### 1. Words you will meet
+
+| Word | Meaning |
+|---|---|
+| **experiment** | one fixed set of conditions (model, temperature, prompt, schema) run on several seeds, e.g. `E01_baseline_schema` |
+| **seed** | a number handed to the model's random sampler. It names one repetition: `s101` is "repetition 101". The same seed in different experiments is the same case, so you can compare `s101` of E01 with `s101` of E02. Long answers are *not* bit-for-bit reproducible with the same seed (logbook entry 11) |
+| **case** | one seed inside one experiment: `experiments/E01_baseline_schema/cases/s101/` |
+| **version** | one piece of code inside a case: `v1` = first answer of the model, `2a`/`2b`/`2c` = revised after reflection |
+| **frozen v1** | reflection never regenerates `v1`; it starts from the stored one, so baseline and reflection are compared on the same code |
+| **ground truth** | facts computed from the CSV with plain pandas (`ground_truth.json`, built by `step0_facts.py`); the model's numbers are compared with it |
+| **funnel** | the stages a run has to pass one after the other (section 4) |
+
+### 2. The five-minute routine after every experiment
+
+```
+python analyze.py                                   # rebuilds PERFORMANCE_LOG.md, results/versions.csv, results/comparison_*.html
+open PERFORMANCE_LOG.md                             # 1. Overview: did depth / facts move? 2. Funnel: where do runs stop?
+python analyze.py --trace E01_baseline_schema 101   # read ONE trace as a story (before forming an opinion)
+```
+
+Then, for the seeds that look interesting, open `cases/s<seed>/v1/`:
+
+| File | Look here to see |
+|---|---|
+| `response.md` | what the model answered (text around the code) |
+| `code.py` | the exact code that was run |
+| `stdout.txt` / `stderr.txt` | what the code printed / why it crashed |
+| `outputs/*.png` | the plots it saved |
+| `notebook.ipynb` | the generated code as a notebook (only if the model used the `# %%` format; code only, no outputs) |
+| `result.json` | the evaluation: exit code, error category, funnel, checks per fact, cost |
+| `feedback.md`, `critique.md` (levels 2a-2c only) | what the critic was shown and what it answered |
+
+### 3. Reading a trace: a real example (E01, seed 101)
+
+`python analyze.py --trace E01_baseline_schema 101` prints:
+
+```
+  1  16:13:09  v1  version_start start (parent: -)
+  2  16:19:53  v1  llm           generate: 1347 tokens in, 1508 out, 403.72s, finish=stop
+  3  16:20:00  v1  exec          code code.py: exit=1, 7.28s  | TypeError: Object of type int64 is not JSON serializable
+  4  16:20:00  v1  result        result: exit=1 error=json_serialize ...
+```
+
+Read it like a sentence: *the version started; the model was asked once (1,347 tokens in, 1,508 out, 404 s) and stopped
+normally; the code was run and crashed after 7 s with a JSON error; the evaluation recorded the category `json_serialize`.*
+
+What each event tells you:
+
+- **`llm`**: cost (tokens, seconds) and `finish`. `stop` is normal; `length` means the answer was cut off at `MAX_TOKENS`;
+  `wall_timeout` means the model took longer than `LLM_MAX_SECONDS`. Add `--full` to see the prompt and the answer.
+- **`exec`**: `exit=0` means the code finished. Anything else is a crash; the last line of stderr is shown.
+- **`result`**: the verdict of the evaluation, the same numbers that end up in the log.
+
+Where did the crash happen? `result.json` has `error_line` (here 123). The script has 123 lines, so it computed
+everything and failed in its very last line, the `json.dumps`, because `numpy.int64` is not JSON-serialisable. The same trace shows
+a second problem that the crash hides: the report text in `code.py` is typed in as a fixed string
+("busiest month being February 2021") *before* anything was computed. Always open `code.py` too, the trace alone does not
+show that.
+
+### 4. The funnel: how far did a run get?
+
+A run passes the stages in order. **Depth** = number of stages passed in a row (0-8).
+
+| # | Stage | Passes when | If it fails, look at |
+|---|---|---|---|
+| 1 | `answered` | the model returned an answer | trace `error` event (timeout, Ollama down) |
+| 2 | `code_found` | the answer contains a ```python block | `response.md` |
+| 3 | `ran` | exit code 0 | `stderr.txt`, `error_category` in `result.json` |
+| 4 | `json_found` | a `RESULTS_JSON:` line is printed | `stdout.txt` (did the script reach the end?) |
+| 5 | `json_strict` | that line is valid JSON | `stdout.txt` (Python dict with single quotes, `np.int64(...)`) |
+| 6 | `keys_complete` | all 7 requested keys are present | `stdout.txt` |
+| 7 | `any_fact` | at least one value matches the ground truth | `checks` in `result.json` |
+| 8 | `all_facts` | all 7 values match | `checks` in `result.json` |
+
+Why not only `facts`? A crash in the last line and a crash in line 5 both give 0 % facts. Depth separates them, and
+**Crash at** in the log (position of the error line in the script, 100 % = last line) shows how close a crashing run came.
+
+**Facts from the text.** If a run prints no `RESULTS_JSON` line, the JSON-based `facts` are blind (0 % because nothing could be read,
+not because the analysis is wrong). `PERFORMANCE_LOG.md` section 4b therefore also shows the facts that can be read from the report
+text (months, busiest month and its count, number of strong flares, trend) as `right / readable`. This is an extra measure; the
+baseline and the funnel are not changed by it.
+
+Things the funnel does *not* measure yet (still open in the evaluation plan): the text of the report (`report_precision` in
+`result.json` is a first, rough number) and the subjective quality of plots and report (the LLM judge).
+
+### 5. Starting an experiment
+
+1. Start **Docker Desktop** and **Ollama** (`ollama list` must show `qwen3-4b-instruct-16k`).
+2. Pick a new id and say what is different:
+   ```
+   python step1_baseline.py --exp <new_id> --schema --prompt step1_baseline_v2 --shims --seeds 101-105 \
+       --change "baseline v2: notebook prompt (# %% format, scipy allowed) + runner shims on"
+   ```
+   `--change` is required for a new experiment (it becomes the "What changed" column). Running the same id again resumes it.
+3. `python analyze.py`, then the routine from section 2.
+
+Credentials / conditions: every experiment stores in `experiment.json` (and in section 4 of the log) the model and its
+digest, temperature, the Ollama URL it was requested at, the Docker image, the machine, the git commit and a hash of every
+prompt. There is no API key involved (the key in `src/llm.py` is a dummy for local Ollama).
+
+### 6. Shims and reruns: measuring the environment separately
+
+The runner helper `SHIM` (`src/runner.py`) makes the sandbox behave like a notebook (`display` exists, `json.dumps` accepts numpy numbers). It hides two
+kinds of model errors, so it is a *condition* of an experiment: the log shows `Shims on/off` and the manifest the hash of the file.
+`step1_baseline.py --rerun-from` runs the **same code** again with or without shims and without any LLM call, so a difference in the funnel
+is caused by the shims alone. Together with the prompt change this gives a 2x2 table (old/new prompt x shims off/on):
+
+| | shims off | shims on |
+|---|---|---|
+| old prompt | baseline | rerun of the baseline code with shims |
+| new prompt | rerun of the v2 code without shims | baseline v2 |
+
+The prompt effect is old prompt vs new prompt, both without shims (different generations); the shim effect is the same code
+with and without shims.
+
+### 7. "Why did the number change?" checklist
+
+When a row in the log moves, check in this order:
+
+1. **Same conditions?** Section 4 of the log: model digest, temperature, prompt hashes, commit. A different digest or hash means a different experiment, not noise.
+2. **Bigger than the spread?** The log shows `mean ± sd` over the seeds. A change smaller than the sd is not a result.
+3. **Which stage moved?** Section 2 of the log: if only `ran` moved, the code got fewer crashes; if `any_fact` moved, the numbers got better.
+4. **Read two traces:** one that got better and one that did not, with `analyze.py --trace ... --full`.
+5. **Cost:** tokens and seconds per seed. A gain at 5x the tokens is a different statement than a free gain.
