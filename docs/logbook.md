@@ -232,3 +232,42 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
   dimensions are unchanged (the three test cases give the same scores as before).
 - A repair of the missing line (a second model call that reminds the model of the format) is not part of the baseline; it belongs to
   the reflection levels.
+
+### 20. Reflection levels 2b and 2c, revise prompt
+- **2b: run observations.** Plain facts about the run are added to the artifacts: run time, size of the printed output, number of
+  sentences printed before the JSON line, whether a RESULTS_JSON line was printed, number of plots. Observations only: no judgement
+  and no hint at what the task asked for.
+- **2c: the report text is checked as well.** `src/feedback.py` reuses `text_claims()` / `text_facts()` of `src/evaluate.py`: for every
+  fact the text states (months, busiest month, number of strong flares, trend) the critic gets "supported" or "REFUTED", with the
+  claim quoted, never the correct value. If the RESULTS_JSON line is missing, the critic is told so explicitly. Before, 2c had nothing
+  to say in that case.
+- **Revise prompt (all levels): minimal change.** "Change only what is needed to fix the problems you listed and keep every other line
+  exactly as it was." Against the pattern that a full rewrite replaces one error by another. Same prompt for 2a, 2b and 2c, so only the
+  information differs between the levels.
+- **Not done: plots described by a vision model.** The handout asks to consider visual artifacts. For now each plot is described by
+  size and drawn area. A vision model (Ollama) that describes the picture in words is a candidate for step 3: built once as a function
+  `describe_plot`, first as an automatic artifact, then as a tool the model can call itself.
+- **Wording "code" instead of "script"** in the critique prompt, the revise prompt and the 2b/2c feedback: baseline v2 asks for a
+  notebook, and "write the complete script again" invited the model to drop the "# %%" cells. The revise prompt now asks to keep the
+  format. Reflection runs made with the old wording are not comparable with new ones (different prompt hashes).
+
+
+### 21. RESULTS_JSON: the format failed, not the analysis; baseline v3 saves a file
+- **Finding (E02-E08).** No run printed the line exactly as `RESULTS_JSON: {...}`, so every fact score was 0 %. Three patterns, fixed
+  per seed (reflection kept them): the dict is assigned to a variable `RESULTS_JSON = {...}` and never printed (natural in a notebook);
+  `print("RESULTS_JSON", json.dumps(..., indent=2))` without ':'; `print("RESULTS_JSON")` and the dict on the next line. Several of
+  these runs had 5 of 7 facts right (months, busiest month and count, flares per year, trend).
+- **Measurement.** `src/checker.py` now also reads `RESULTS_JSON` without ':' and with the object on the next line (`json_found`);
+  `json_strict` still requires exactly `RESULTS_JSON: {...}` with valid JSON, so the format error stays visible in the funnel (and the
+  funnel depth stops there). `analyze.py` recomputes the facts of every run (`facts_for_dir`, like `report_precision`); `result.json`
+  is not rewritten. Old experiments show their real fact scores now.
+- **2b/2c feedback.** The run observation names where the results ended up and in which form ("'RESULTS_JSON' printed (stdout line 2),
+  but not in the form 'RESULTS_JSON: {...}'"). Before it said "not printed" for these runs, which was wrong. 2c checks the leniently
+  read results. Both change the feedback texts, so new reflection experiments are needed.
+- **Baseline v3 (`prompts/step1_baseline_v3.txt`).** Report and measurement are separated: plots are shown and saved, a summary cell
+  prints the findings from the computed variables, and the last cell saves the results with `json.dump` to `/outputs/results.json`.
+  A file fits the notebook style, and the checker reads it first (then falls back to stdout, so v2 runs stay readable).
+- **Runner shim.** `json.dump` is made numpy-safe like `json.dumps` (otherwise `np.int64` in results.json crashes). The shim hash
+  changes, so the manifests of new experiments record the new version.
+- **Still open:** `n_strong` and `pct_strong_per_year` are wrong in every run. Without a definition the model counts B4+/C+ as strong
+  (about 25,000 instead of 1,637 M/X flares). Decide: keep the definition open (an assumption the model must make) or state it.

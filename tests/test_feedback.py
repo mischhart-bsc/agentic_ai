@@ -14,7 +14,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from src.checker import GT  # noqa: E402
-from src.feedback import build_feedback, prompt_texts  # noqa: E402
+from src.feedback import build_feedback, prompt_texts, results_observation  # noqa: E402
 
 
 def make_v1(tmp, stdout, stderr, exit_code, plots=0, blank=False):
@@ -65,6 +65,46 @@ def test_feedback():
         assert "appears EMPTY" in build_feedback("2b", v1)
 
 
+REPORT_WRONG = ("The monthly number of flares grew steadily over 61 months. The peak monthly flare count occurred in "
+                "February 2021, the first year of observation. In total 900 flares were strong (M or X class). "
+                "The share of strong flares increased from year to year.")
+
+
+def test_run_observations_and_text_check():
+    """2b adds plain observations; 2c checks the claims of the report text when RESULTS_JSON is missing."""
+    with tempfile.TemporaryDirectory() as tmp:
+        v1 = make_v1(tmp, REPORT_WRONG, "", 0, plots=2)
+        fb2b = build_feedback("2b", v1)
+        assert "Run observations" in fb2b and "no RESULTS_JSON line was printed" in fb2b
+        assert "plots saved: 2" in fb2b and "sentences" in fb2b
+        assert "Independent check" not in fb2b and "REFUTED" not in fb2b      # 2b stays free of external facts
+
+        fb = build_feedback("2c", v1)
+        assert "your results could not be read" in fb                          # the missing line is named
+        assert "busiest month: your text says 2021-02 -> REFUTED" in fb
+        assert "number of months: your text says 61 -> supported" in fb
+        assert "strong share increasing 2022-2025: your text says the share rises -> REFUTED" in fb
+        assert GT["busiest_month"] not in fb and str(GT["n_strong_estimated_MX"]) not in fb   # never the correct values
+
+    with tempfile.TemporaryDirectory() as tmp:
+        v1 = make_v1(tmp, "", "", 1)
+        assert "nothing was printed to stdout" in build_feedback("2b", v1)
+        assert "states none of the checkable facts" in build_feedback("2c", v1)
+
+    # where the results ended up: the exact form is named, the values never
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        assert "not in the form 'RESULTS_JSON: {...}'" in results_observation("x\nRESULTS_JSON {\"n_months\": 61}", out)
+        assert "printed, valid JSON" in results_observation('RESULTS_JSON: {"n_months": 61}', out)
+        (out / "results.json").write_text('{"n_months": 61}')
+        assert results_observation("", out) == "- /outputs/results.json: saved, valid JSON"
+
+    # the fixed texts go into the manifest, so a change of the wording is detected
+    assert "Run observations" in prompt_texts("2b")["feedback_2b"]
+    assert "report TEXT" in prompt_texts("2c")["feedback_2c"]
+
+
 if __name__ == "__main__":
     test_feedback()
+    test_run_observations_and_text_check()
     print("OK - feedback checks passed")

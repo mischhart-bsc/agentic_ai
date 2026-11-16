@@ -2,6 +2,7 @@
 import json
 import ast
 import re
+from pathlib import Path
 
 import config
 
@@ -19,15 +20,24 @@ KEYS = {
 }
 
 
-def _find(stdout):
-    """Text des Objekts nach 'RESULTS_JSON:' - auch wenn es mehrzeilig ist."""
+RESULTS_FILE = "results.json"      # prompt step1_baseline_v3: the notebook saves its results to /outputs/results.json
+
+
+def results_file_text(out_dir):
+    """Text of outputs/results.json, or None if the code saved no such file."""
+    p = Path(out_dir) / RESULTS_FILE if out_dir else None
+    return p.read_text(encoding="utf-8", errors="replace") if p and p.is_file() else None
+
+
+def _find(stdout, strict=False):
+    """Text des Objekts nach 'RESULTS_JSON:' - auch wenn es mehrzeilig ist.
+    strict=False also accepts 'RESULTS_JSON' without ':' and the object on the next line
+    (seen in E02-E08: print("RESULTS_JSON", json.dumps(...)) and print("RESULTS_JSON"); print(dict))."""
     stdout = stdout or ""
-    i = stdout.find("RESULTS_JSON:")
-    if i < 0:
+    m = re.search(r"RESULTS_JSON:\s*\{" if strict else r"RESULTS_JSON\s*:?\s*\{", stdout)
+    if not m:
         return None
-    start = stdout.find("{", i)
-    if start < 0:
-        return None
+    start = m.end() - 1
     depth = 0
     for j in range(start, len(stdout)):
         if stdout[j] == "{":
@@ -39,9 +49,11 @@ def _find(stdout):
     return None
 
 
-def strict_json_ok(stdout):
-    """True, wenn RESULTS_JSON gueltiges JSON ist (Format-Metrik)."""
-    s = _find(stdout)
+def strict_json_ok(stdout, out_dir=None):
+    """True, wenn RESULTS_JSON gueltiges JSON ist (Format-Metrik): outputs/results.json, sonst exakt 'RESULTS_JSON: {...}'."""
+    s = results_file_text(out_dir)
+    if s is None:
+        s = _find(stdout, strict=True)
     if s is None:
         return False
     try:
@@ -50,9 +62,12 @@ def strict_json_ok(stdout):
         return False
 
 
-def extract_results(stdout):
-    """Tolerant: echtes JSON oder Python-Dict-Ausgabe (inkl. numpy-Typen). dict oder None."""
-    s = _find(stdout)
+def extract_results(stdout, out_dir=None):
+    """Tolerant: echtes JSON oder Python-Dict-Ausgabe (inkl. numpy-Typen). dict oder None.
+    outputs/results.json wins if it exists; otherwise the RESULTS_JSON block in stdout."""
+    s = results_file_text(out_dir)
+    if s is None:
+        s = _find(stdout)
     if s is None:
         return None
     try:
@@ -141,7 +156,7 @@ def numbers_in(text):
 
 def report_precision(stdout):
     """Share of the numbers in the report text that match a ground-truth value. None if the text has no numbers."""
-    nums = numbers_in((stdout or "").split("RESULTS_JSON:")[0])
+    nums = numbers_in((stdout or "").split("RESULTS_JSON")[0])
     if not nums:
         return None
     ok = sum(any(abs(n - g) <= max(0.02 * abs(g), 0.1) for g in GT_NUMS) for n in nums)
