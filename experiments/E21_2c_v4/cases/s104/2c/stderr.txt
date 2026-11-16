@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "pandas/_libs/tslibs/offsets.pyx", line 7998, in pandas._libs.tslibs.offsets.to_offset
+  File "pandas/_libs/tslibs/offsets.pyx", line 7874, in pandas._libs.tslibs.offsets._validate_to_offset_alias
+ValueError: for Period, please use 'M' instead of 'ME'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 27, in <module>
+    df['month'] = df['start_UTC'].dt.to_period('ME')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/accessor.py", line 128, in f
+    return self._delegate_method(name, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/indexes/accessors.py", line 128, in _delegate_method
+    result = method(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/indexes/datetimes.py", line 1802, in to_period
+    arr = self._data.to_period(freq)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimes.py", line 1284, in to_period
+    return PeriodArray._from_datetime64(self._ndarray, freq, tz=self.tz)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/period.py", line 362, in _from_datetime64
+    data, freq = dt64arr_to_periodarr(data, freq, tz)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/period.py", line 1504, in dt64arr_to_periodarr
+    freq = Period._maybe_convert_freq(freq)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/tslibs/period.pyx", line 2166, in pandas._libs.tslibs.period._Period._maybe_convert_freq
+  File "pandas/_libs/tslibs/offsets.pyx", line 8048, in pandas._libs.tslibs.offsets.to_offset
+  File "pandas/_libs/tslibs/offsets.pyx", line 7809, in pandas._libs.tslibs.offsets.raise_invalid_freq
+ValueError: Invalid frequency: ME. Failed to parse with error message: ValueError("for Period, please use 'M' instead of 'ME'")
