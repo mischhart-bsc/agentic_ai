@@ -1,0 +1,36 @@
+{
+  "experiment": "L09_step2a_reflection_schema_e804c4",
+  "seed": null,
+  "version": "2a",
+  "parent": "v1 (not executed)",
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "KeyError",
+  "error_category": "hallucinated_column",
+  "error_message": "KeyError: 'pct_strong'",
+  "error_line": 138,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 2,
+  "cost": {
+    "llm_calls": 3,
+    "prompt_tokens": 9225,
+    "completion_tokens": 5426,
+    "llm_seconds": 692.0,
+    "exec_seconds": 6.6,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261007_003659_step2a_reflection_schema_54c9"
+}

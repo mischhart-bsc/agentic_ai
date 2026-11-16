@@ -1,0 +1,70 @@
+You are a data analyst. Write ONE complete Python script that performs an exploratory data analysis.
+
+Data: a CSV file at /data/stix_flarelist.csv (solar flares observed by the STIX X-ray telescope on Solar Orbiter).
+
+Columns (name and dtype):
+- start_UTC (str)
+- end_UTC (str)
+- peak_UTC (str)
+- 4-10 keV (int64)
+- 10-15 keV (int64)
+- 15-25 keV (int64)
+- 25-50 keV (int64)
+- 50-84 keV (int64)
+- bkg 4-10 keV (float64)
+- bkg 10-15 keV (float64)
+- bkg 15-25 keV (float64)
+- bkg 25-50 keV (float64)
+- bkg 50-84 keV (float64)
+- bkg_baseline_4-10 keV (float64)
+- hpc_x_solo (float64)
+- hpc_y_solo (float64)
+- hpc_x_earth (float64)
+- hpc_y_earth (float64)
+- visible_from_earth (object)
+- hgs_lon (float64)
+- hgs_lat (float64)
+- hgc_lon (float64)
+- hgc_lat (float64)
+- solo_position_lat (float64)
+- solo_position_lon (float64)
+- solo_position_AU_distance (float64)
+- EAR_TDEL (float64)
+- GOES_class_time_of_flare (str)
+- GOES_flux_time_of_flare (float64)
+- att_in (bool)
+- flare_id (int64)
+- sidelobes_ratio (float64)
+- goes_estimated_min_class (str)
+- goes_estimated_max_class (str)
+- goes_estimated_mean_class (str)
+- goes_estimated_min_flux (float64)
+- goes_estimated_max_flux (float64)
+- goes_estimated_mean_flux (float64)
+- error_with_imaging (bool)
+- cpd_filename (str)
+
+First 3 rows (CSV):
+start_UTC,end_UTC,peak_UTC,4-10 keV,10-15 keV,15-25 keV,25-50 keV,50-84 keV,bkg 4-10 keV,bkg 10-15 keV,bkg 15-25 keV,bkg 25-50 keV,bkg 50-84 keV,bkg_baseline_4-10 keV,hpc_x_solo,hpc_y_solo,hpc_x_earth,hpc_y_earth,visible_from_earth,hgs_lon,hgs_lat,hgc_lon,hgc_lat,solo_position_lat,solo_position_lon,solo_position_AU_distance,EAR_TDEL,GOES_class_time_of_flare,GOES_flux_time_of_flare,att_in,flare_id,sidelobes_ratio,goes_estimated_min_class,goes_estimated_max_class,goes_estimated_mean_class,goes_estimated_min_flux,goes_estimated_max_flux,goes_estimated_mean_flux,error_with_imaging
+2021-02-14T01:41:06.670,2021-02-14T01:49:14.671,2021-02-14T01:44:14.670,1983,463,183,927,543,271.0,49.0,67.0,863.0,463.0,251.1802702558307,,,,,,,,,,1.3947409189107989,-160.03720715870418,0.4970909168882308,730.1856882166728,A,1.5574562084452737e-08,False,2102140144,,B4,B8,B6,4e-07,8e-07,6e-07,True
+2021-02-14T13:21:34.741,2021-02-14T13:33:02.742,2021-02-14T13:24:54.741,1855,271,151,927,543,271.0,49.0,67.0,863.0,463.0,250.64296488202297,,,,,,,,,,1.4331921350556664,-158.9683830179951,0.4978103972044915,729.4985829025267,A,1.5693217392254155e-08,False,2102141324,,B4,B8,B6,4e-07,8e-07,6e-07,True
+2021-02-14T19:34:46.779,2021-02-14T19:43:18.780,2021-02-14T19:36:46.779,1215,271,151,927,495,247.0,49.0,67.0,863.0,463.0,235.2666666666667,,,,,,,,,,1.4531221775483143,-158.4029883746084,0.4982276292096188,729.1295175814364,A,1.6991027251833657e-08,False,2102141936,,B4,B6,B5,4e-07,6e-07,5e-07,True
+
+
+Research question:
+How did the monthly number of flares (counted by start_UTC) evolve from February 2021 up to and including February 2026
+(use all rows of the file), and did the share of strong flares (GOES class M or X) change over the years?
+
+Requirements:
+- Use pandas, numpy and matplotlib only.
+- Save every plot as PNG into /outputs/ (never call plt.show()).
+- Print your findings to stdout as a short report (5-10 sentences).
+- At the very end, print exactly one line that starts with RESULTS_JSON: followed by a JSON object with these keys:
+  "n_months" (int), "busiest_month" ("YYYY-MM"), "busiest_month_count" (int),
+  "flares_per_year" ({year: count}), "n_strong" (int), "pct_strong_per_year" ({year: percent}),
+  "strong_share_increasing" (true only if the yearly percentage of strong flares rises
+  from each year to the next across the full calendar years 2022-2025)
+- Convert all values and keys in RESULTS_JSON to plain Python types (int, float, str, bool)
+  before calling json.dumps, and print the JSON on a single line.
+
+Answer with exactly one ```python code block and nothing else

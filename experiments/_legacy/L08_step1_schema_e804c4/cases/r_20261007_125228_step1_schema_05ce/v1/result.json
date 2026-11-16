@@ -1,0 +1,36 @@
+{
+  "experiment": "L08_step1_schema_e804c4",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "json_serialize",
+  "error_message": "TypeError: Object of type int64 is not JSON serializable",
+  "error_line": 84,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": 0.0,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 1,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1347,
+    "completion_tokens": 1126,
+    "llm_seconds": 161.1,
+    "exec_seconds": 5.2,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261007_125228_step1_schema_05ce"
+}

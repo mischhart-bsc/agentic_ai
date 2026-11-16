@@ -1,0 +1,35 @@
+{
+  "experiment": "E01_baseline_schema",
+  "seed": 102,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "period_type",
+  "error_message": "TypeError: float() argument must be a string or a real number, not 'Period'",
+  "error_line": 74,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1347,
+    "completion_tokens": 1338,
+    "llm_seconds": 741.0,
+    "exec_seconds": 6.2,
+    "truncated": false
+  }
+}

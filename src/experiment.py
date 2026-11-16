@@ -20,9 +20,11 @@ from datetime import datetime
 from pathlib import Path
 
 import config
+from src.runner import SHIM
 
 # Conditions that must be identical when an existing experiment is resumed
-FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts")
+FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts", "runner_shims", "shim_hash")
+OLD_DEFAULTS = {"runner_shims": False, "shim_hash": None}      # manifests written before a key existed
 
 def load(exp_id, root=None):
     """Read the manifest of an existing experiment (e.g. the base of a reflection level)."""
@@ -44,15 +46,15 @@ def parse_seeds(text):
 
 # turns a prompt into a short fingerprint
 def sha(text):
-    return "sha265:" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
 def git_info():
     def git(*args):
         try:
-            return subprocess.run(["git", "args"], cwd=config.ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
+            return subprocess.run(["git", *args], cwd=config.ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
         except (OSError, subprocess.TimeoutExpired):
             return None
-    commit = git("rev-parse", "-short", "HEAD")
+    commit = git("rev-parse", "--short", "HEAD")
     # generated code inside runs/ and experiments/ is data, not project code
     status = git("status", "--porcelain", "--", "*.py", "prompts", ":(exclude)runs", ":(exclude)experiments")
     return {"git_commit": commit or None, "git_dirty": bool(status) if status is not None else None}
@@ -77,7 +79,7 @@ def machine():
 
 
 class Experiment:
-    def __init__(self, exp_id, level, prompts, seeds, base=None, data_context=None, note="", root=None):
+    def __init__(self, exp_id, level, prompts, seeds, base=None, data_context=None, note="", change="", runner_shims=False, root=None):
         """
         exp_id        unique name, e.g. 'E02_2a_schema'
         level         'baseline', '2a', '2b', '2c', ...
@@ -85,6 +87,8 @@ class Experiment:
         seeds         list of ints, one case per seed
         base          exp_id of the experiment whose v1 this one builds on (None for a baseline)
         data_context  'blind' or 'schema'
+        runner_shims  True if the code ran with SHIM loaded (display, numpy-safe json)
+        change        one sentence: what is different from the experiment this one is compared with (shown in PERFORMANCE_LOG.md)
         root          folder that holds the experiments (default config.EXPERIMENTS_DIR; tests use a temp dir)
         """
         self.id = exp_id
@@ -94,6 +98,9 @@ class Experiment:
             "id": exp_id,
             "level": level,
             "base": base,
+            "change": change,
+            "runner_shims": bool(runner_shims),
+            "shim_hash": sha(SHIM) if runner_shims else None,
             "note": note,
             "seeds": list(seeds),
             "data_context": data_context,
@@ -103,9 +110,10 @@ class Experiment:
             "max_tokens": config.MAX_TOKENS,
             "llm_max_seconds": config.LLM_MAX_SECONDS,
             "prompts": {name: sha(text) for name, text in prompts.items()},
-            "git_commit": None,
-            "git_dirty": None,
+            **git_info(),
             "machine": machine(),
+            "ollama_url": config.OLLAMA_URL,          # where the model was requested (no secrets: the key is a dummy)
+            "docker_image": config.DOCKER_IMAGE,
             "started": datetime.now().isoformat(timespec="seconds"),
             "finished": None,
             "status": "running"
@@ -124,14 +132,14 @@ class Experiment:
 
     def _resume(self):
         old = json.loads((self.dir / "experiment.json").read_text(encoding="utf-8"))
-        diff = [k for k in FINGERPRINT_KEYS if old.get(k) != self.manifest[k]] # conditions must match to resume
+        diff = [k for k in FINGERPRINT_KEYS if old.get(k, OLD_DEFAULTS.get(k)) != self.manifest[k]] # conditions must match to resume
         if diff:
             raise ValueError(f"Experiment '{self.id}' already exists with different conditions: "
                              f"{', '.join(diff)}. Use a new experiment id")
         if old.get("git_commit") != self.manifest["git_commit"]:
             print(f"Warning: '{self.id}' was started on commit {old.get("git_commit")}, "
                   f" now {self.manifest["git_commit"]}")
-        new_seeds = [s for s in self.manigest["seeds"] if s not in old["seeds"]]
+        new_seeds = [s for s in self.manifest["seeds"] if s not in old["seeds"]]
         self.manifest = {**old,"seeds": old["seeds"] + new_seeds, "status":"running", "finished":None}
         self._write()
 
@@ -156,3 +164,7 @@ class Experiment:
         self.manifest["status"] = "complete"
         self.manifest["finished"] = datetime.now().isoformat(timespec="seconds")
         self._write()
+
+def change_missing(exp_id, change):
+    """True if a NEW experiment is started without saying what changed (resuming an existing one is fine)."""
+    return not change and not (Path(config.EXPERIMENTS_DIR) / exp_id / "experiment.json").exists()

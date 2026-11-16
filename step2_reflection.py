@@ -1,82 +1,109 @@
-"""Step 2a: reflection alone. generate -> critique -> revise -> run the revised code once -> check facts.
+"""Step 2: reflection levels on the frozen v1 of a baseline experiment.
 
-The model only sees its own code, never a run result (that is level 2b). Version 1 of the code is
-therefore NOT executed; it is kept as a file and in the trace for comparison.
+Per seed: load v1 (prompt, answer, run artifacts) from the base experiment -> critique -> revise
+-> execute the revised code -> evaluate. v1 is never regenerated: the same seed does not give the same
+long answer twice (tested 2026-10-09), so every level must start from the stored v1 to be comparable.
 
-Run:  python step2_reflection.py --runs 1 --schema
-      python step2_reflection.py --runs 5 --schema
+    2a  critic sees only its own code
+    2b  + artifacts of the v1 run (exit code, stdout, traceback, plot descriptions)
+    2c  + external check of the RESULTS_JSON claims (supported / refuted / missing)
+
+Run:  python step2_reflection.py --exp E02_2a_schema --level 2a --base E01_baseline_schema
+      python step2_reflection.py --exp E03_2b_schema --level 2b --base E01_baseline_schema
+      python step2_reflection.py --exp E04_2c_schema --level 2c --base E01_baseline_schema
+      (seeds default to all seeds of the base; same command again = resume)
 """
 import argparse
+import json
 
 import config
-from src.checker import check, extract_results, score, strict_json_ok, report_precision
+from src.evaluate import evaluate_version, summary_line
+from src.experiment import Experiment, change_missing, load, parse_seeds
+from src.feedback import build_feedback, prompt_texts
 from src.llm import chat
 from src.runner import run_code
-from src.schema import data_schema
-from src.trace import Run
-from step1_baseline import PROMPT, extract_code
+from src.trace import Case
+from step1_baseline import extract_code
 
+LEVELS = ("2a", "2b", "2c")
 CRITIQUE = (config.ROOT / "prompts" / "step2a_critique.txt").read_text(encoding="utf-8")
 REVISE = (config.ROOT / "prompts" / "step2a_revise.txt").read_text(encoding="utf-8")
 
 
-def one_run(i, use_schema=False):
-    cfg = "step2a_reflection_schema" if use_schema else "step2a_reflection"
-    prompt = PROMPT.replace("{SCHEMA}", data_schema() if use_schema else "")
-    run = Run(cfg)
+def load_v1(base_id, seed):
+    """The frozen v1 of one seed: folder, generate messages, answer and result. None if it is not usable."""
+    case_dir = config.EXPERIMENTS_DIR / base_id / "cases" / f"s{seed}"
+    v1_dir = case_dir / "v1"
+    if not (v1_dir / "result.json").exists():
+        return None
+    result = json.loads((v1_dir / "result.json").read_text(encoding="utf-8"))
+    entries = [json.loads(l) for l in (case_dir / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    gen = [e for e in entries if e["kind"] == "llm" and e.get("version") == "v1" and e.get("stage") == "generate"]
+    if result.get("llm_error") or not gen:
+        return None                     # v1 has no answer (LLM failed): nothing to reflect on
+    return {"dir": v1_dir, "messages": gen[-1]["messages"], "answer": gen[-1]["response"], "result": result}
+
+
+def reflect(case, base_id, v1, level, shims=False):
+    """critique -> revise -> execute -> evaluate for one seed. Returns the result of this level."""
+    ver = case.version(level, parent=f"{base_id}/s{case.seed}/v1")
+    feedback = build_feedback(level, v1["dir"])
+    ver.save("feedback.md", feedback)
+
+    critique_prompt = f"{feedback}\n\n{CRITIQUE}" if feedback else CRITIQUE
+    messages = v1["messages"] + [{"role": "assistant", "content": v1["answer"]},
+                                 {"role": "user", "content": critique_prompt}]
     try:
-        messages = [{"role": "user", "content": prompt}]
-        v1 = chat(run, messages, label="generate")
-        code_v1 = extract_code(v1)
-        if code_v1:
-            run.save_code(code_v1)                       # kept as a file, but not executed
-
-        messages += [{"role": "assistant", "content": v1}, {"role": "user", "content": CRITIQUE}]
-        critique = chat(run, messages, label="critique")
-
-        messages += [{"role": "assistant", "content": critique}, {"role": "user", "content": REVISE}]
-        v2 = chat(run, messages, label="revise")
+        critique = chat(ver, messages, label="critique", seed=case.seed)
+        ver.save("critique.md", critique)
+        # a new list, so the messages of the critique call stay as they were sent
+        messages = messages + [{"role": "assistant", "content": critique}, {"role": "user", "content": REVISE}]
+        answer = chat(ver, messages, label="revise", seed=case.seed)
     except Exception as e:
-        # LLM call failed (timeout, connection lost, ...): record it in the trace and go on
-        run.log("error", label="reflection", error_type=type(e).__name__, error=str(e))
-        summary = {"config": cfg, "llm_error": type(e).__name__, "code_found": False, "exit_code": None,
-                   "results_json_found": False, "checks": check(None), "fact_score": 0.0, "n_plots": 0}
-        run.log("result", **summary)
-        print(f"[{i}] {run.run_id}  LLM-Fehler: {type(e).__name__}: {e}")
-        return summary
+        # LLM call failed (timeout, connection lost, ...): record it and go on with the next seed
+        ver.log("error", stage="reflection", error_type=type(e).__name__, error=str(e))
+        return evaluate_version(ver, None, llm_error=type(e).__name__)
 
-    code = extract_code(v2)
-    if code is None:
-        res = {"exit_code": None, "stdout": "", "stderr": "no code block found"}
-    else:
-        res = run_code(run, code)
-
-    results = extract_results(res["stdout"])
-    checks = check(results)
-    summary = {
-        "config": cfg,
-        "code_found": code is not None,
-        "exit_code": res["exit_code"],
-        "results_json_found": results is not None,
-        "results_json_strict": strict_json_ok(res["stdout"]),
-        "report_precision": report_precision(res["stdout"]),
-        "checks": checks,
-        "fact_score": score(checks),
-        "n_plots": len(list((run.dir / "outputs").glob("*.png"))),
-    }
-    run.log("result", **summary)
-    (run.dir / "report.txt").write_text(res["stdout"] or res["stderr"], encoding="utf-8")
-
-    print(f"[{i}] {run.run_id}  exit={res['exit_code']}  json={results is not None}  "
-          f"facts={summary['fact_score']:.0%}  plots={summary['n_plots']}")
-    return summary
+    ver.save("response.md", answer)
+    code = extract_code(answer)
+    res = run_code(ver, code, shims=shims) if code is not None else None
+    return evaluate_version(ver, code, res)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--runs", type=int, default=5)
-    ap.add_argument("--schema", action="store_true", help="columns + example values in the prompt")
+    ap.add_argument("--exp", required=True, help="experiment id, e.g. E02_2a_schema")
+    ap.add_argument("--level", required=True, choices=LEVELS)
+    ap.add_argument("--base", required=True, help="baseline experiment whose v1 is reflected on")
+    ap.add_argument("--seeds", help="default: all seeds of the base, e.g. 101-105")
+    ap.add_argument("--change", default="", help="what is different from the experiment you compare with (required for a new experiment)")
+    ap.add_argument("--note", default="", help="free text for the manifest")
     args = ap.parse_args()
-    for i in range(1, args.runs + 1):
-        one_run(i, use_schema=args.schema)
-    print("\nNext: python analyze_runs.py   (and READ the traces in runs/)")
+    if change_missing(args.exp, args.change):
+        ap.error("--change is required for a new experiment: one sentence on what is different from the one you compare with")
+
+    base = load(args.base)
+    if base["level"] != "baseline":
+        raise SystemExit(f"--base must be a baseline experiment, '{args.base}' has level {base['level']}")
+    seeds = parse_seeds(args.seeds) if args.seeds else base["seeds"]
+    missing = [s for s in seeds if s not in base["seeds"]]
+    if missing:
+        raise SystemExit(f"Seeds {missing} are not in the base experiment {args.base}")
+
+    prompts = {"critique": CRITIQUE, "revise": REVISE, **prompt_texts(args.level)}
+    exp = Experiment(args.exp, args.level, prompts, seeds, base=args.base,
+                     data_context=base["data_context"], runner_shims=base.get("runner_shims", False), change=args.change, note=args.note)
+
+    print(f"Experiment {exp.id}: level {args.level} on {args.base}, seeds {exp.seeds}")
+    for seed in exp.seeds:
+        if exp.is_done(seed, args.level):
+            print(f"s{seed} {args.level}  already done, skipped")
+            continue
+        v1 = load_v1(args.base, seed)
+        if v1 is None:
+            print(f"s{seed} {args.level}  skipped: v1 of {args.base} has no usable answer")
+            continue
+        print(summary_line(reflect(Case(exp, seed), args.base, v1, args.level, shims=exp.manifest["runner_shims"])))
+    exp.finish()
+    print(f"\nDone: {exp.dir}")
+    

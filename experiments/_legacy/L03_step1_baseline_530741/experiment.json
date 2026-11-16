@@ -1,0 +1,19 @@
+{
+  "id": "L03_step1_baseline_530741",
+  "level": "baseline",
+  "base": null,
+  "status": "legacy",
+  "data_context": "blind",
+  "config": "step1_baseline",
+  "model": "qwen3-4b-16k",
+  "temperature": null,
+  "prompts": {
+    "generate": "sha256:530741"
+  },
+  "seeds": [],
+  "source_runs": [
+    "20261004_135452_step1_baseline_7993",
+    "20261004_140138_step1_baseline_ee81"
+  ],
+  "note": "migrated from runs/ by tools/migrate_runs.py; temperature, git commit and seed were not logged at that time; old 2a runs never executed v1, so there is no paired v1 result"
+}

@@ -1,0 +1,36 @@
+{
+  "experiment": "L04_step1_baseline_2e163a",
+  "seed": null,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "ValueError",
+  "error_category": "hallucinated_column",
+  "error_message": "ValueError: CSV file must have a 'date' column for exploration.",
+  "error_line": 18,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": null,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 337,
+    "completion_tokens": 1336,
+    "llm_seconds": 46.1,
+    "exec_seconds": 0.9,
+    "truncated": false
+  },
+  "migrated_from": "runs\\20261004_150907_step1_baseline_d2d5"
+}

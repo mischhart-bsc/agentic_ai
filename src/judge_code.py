@@ -4,7 +4,7 @@ The report judge (src/judge.py) rates the final text. This one rates a single st
 the Python script the model wrote. It judges the code as written and NOT whether it crashed
 (exit code is measured separately, objectively), so both metrics stay independent.
 
-Run via:  python evaluate_reports.py --judge-code
+Run via:  python analyze.py --exp <id> --judge-code
 Writes runs/<id>/judge_code.json (+ judge_code.jsonl as log). Reuses model, temperature and parser of src/judge.py.
 """
 import json
@@ -81,7 +81,11 @@ def build_messages(code):
 
 
 def last_code(run_dir):
-    """Newest generated script of a run (later steps write several versions); None if there is none."""
+    """The generated script of a folder: code.py of a version folder (experiments/), else the newest
+    code/step_*.py of an old run; None if there is none."""
+    single = Path(run_dir) / "code.py"
+    if single.exists():
+        return single.read_text(encoding="utf-8")
     files = sorted((Path(run_dir) / "code").glob("step_*.py"))
     return files[-1].read_text(encoding="utf-8") if files else None
 

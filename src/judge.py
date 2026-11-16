@@ -2,10 +2,10 @@
 
 Ablauf laut Checkliste (Evaluation framework):
   1. Rubrik unten mit der Gruppe abstimmen (Kriterien, Skala, Bedeutung jeder Stufe).
-  2. 5-10 Reports selbst bewerten:  python evaluate_reports.py --human-template
+  2. 5-10 Reports selbst bewerten:  python analyze.py --exp <id> --human-template
      -> human_scores.csv ausfuellen.
-  3. Judge auf dieselben Reports:   python evaluate_reports.py --judge
-  4. Uebereinstimmung messen:       python evaluate_reports.py --agreement
+  3. Judge auf dieselben Reports:   python analyze.py --exp <id> --judge
+  4. Uebereinstimmung messen:       python analyze.py --agreement
   5. Prompt anpassen, bis Judge und Mensch ausreichend uebereinstimmen.
 
 Plots bewertet der Judge (noch) nicht: qwen3 kann keine Bilder lesen. Dafuer braeuchte es

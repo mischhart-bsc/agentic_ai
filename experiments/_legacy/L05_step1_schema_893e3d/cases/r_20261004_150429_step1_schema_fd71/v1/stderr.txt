@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/code/step_002.py", line 76, in <module>
+    monthly_summary_plot['full_month'] = monthly_summary_plot['month_str'].str.cat(['2021'], sep='-', na_action=None)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/strings/accessor.py", line 142, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: StringMethods.cat() got an unexpected keyword argument 'na_action'
