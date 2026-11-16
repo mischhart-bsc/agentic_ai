@@ -1,0 +1,14 @@
+- The code fails to correctly extract and aggregate the monthly flare counts due to a flawed construction of the `monthly_flares` DataFrame, which relies on an incorrect grouping and does not properly account for the full range of months (2021–2026) or the correct number of months (60 months over 5 years).
+- The value for "busiest_month_count" (3023) is incorrect and not supported by the actual data distribution; the independent check refutes this value, indicating a miscalculation in the aggregation logic.
+- The monthly flares are not properly grouped or counted across the full period (Feb 2021 to Feb 2026), and the resulting "n_months" (60) is correct in count but the actual distribution is not derived from real data.
+- The "pct_strong_per_year" values are arbitrary and not computed from the actual data (e.g., 32% for 2021, 38% for 2023), and the independent check refutes the claim that the strong share increased annually.
+- The strong_share_increasing flag is set to True based on an incorrect assumption of increasing percentages, when the independent computation shows the trend is not rising.
+- The report text contains factual errors, such as claiming the strongest flares increased from 2022 to 2025, which is contradicted by the independent check.
+- The code does not validate the data or compute the actual counts from the original CSV — it invents values (like 3023 flares) that are not derived from the dataset.
+- The `goes_estimated_max_class` column is used to define strong flares, but the classification is not properly parsed (e.g., "B4", "C", "M", "X") — the logic may be oversimplified or incorrect.
+- The code assumes a fixed mapping of "strong" flares to GOES class B4+, but the actual data may have different thresholds or missing values.
+- The data is filtered by `start_UTC` only, but no validation is performed to ensure all relevant flares are included in the time range.
+- The final RESULTS_JSON object includes values that are not supported by the actual data, leading to incorrect conclusions.
+- The code does not compute the actual number of strong flares (n_strong) or the true monthly totals — it sets them arbitrarily.
+- The plots are saved correctly, but their content is not aligned with the actual data, making them misleading.
+- The code does not handle missing or invalid entries in the GOES class or timestamp fields, which could lead to errors or incorrect counts.

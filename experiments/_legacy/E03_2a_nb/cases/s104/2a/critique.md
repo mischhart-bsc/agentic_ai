@@ -1,0 +1,25 @@
+- The research question specifies "from February 2021 up to and including February 2026", but the script only uses data from the start_UTC field and does not filter or restrict to flares occurring in February 2021 to February 2026. It includes all rows, which may not be valid if the dataset has flares outside this date range.  
+- The script defines "strong flares" based on GOES class B4+, but the GOES_class_time_of_flare column contains values like 'A', 'B', 'C', 'M', 'X'—some of which are not in B4+. However, the classification logic uses 'B4|B5|B6|C|M|X', which is correct, but the data may not have a consistent GOES class value. The column is of type str, and there may be missing or malformed entries, which the script does not validate.  
+- The script computes strong share per year but does not validate that the GOES_estimated_min_class column is actually used correctly or that it is non-null. It assumes the string contains B4+, but if values are missing or malformed (e.g., empty strings or 'A'), the classification will fail.  
+- The script uses `df['goes_estimated_min_class'].str.contains('B4|B5|B6|C|M|X')`, which may miss cases like 'B3' or 'B2'—but that is acceptable since B4+ is the threshold. However, the data may not contain these values, and the script does not verify the actual distribution of GOES classes.  
+- The `busiest_month` is derived from the count of flares, but it is only based on the monthly groupings. It does not consider whether the month is within the specified period (February 2021 to February 2026). The script includes all years and months, but the data may have flares from years before 2021 or after 2026.  
+- The script does not filter or validate the date range of start_UTC. It uses all rows, which violates the research question's temporal scope.  
+- The strong share increasing check only runs from 2022 to 2025, which is correct, but the script does not verify that years 2022–2025 actually exist in the data. If the dataset has no flares in one of these years, the share will be zero and the trend will be broken.  
+- The script saves plots to /outputs/, which is correct, but it does not ensure the directories exist or that files are saved in the correct format.  
+- The script does not include any data quality checks (e.g., missing values, duplicates, data types) that would validate whether the dataset is usable.  
+- The GOES_estimated_min_flux and other columns are not used, which may be a limitation if flare strength is better defined by flux than class.  
+- The script does not handle edge cases such as missing or invalid timestamps (e.g., malformed start_UTC) that could result in incorrect grouping or counts.  
+- The final RESULTS_JSON includes a "pct_strong_per_year" with float values, but the output is formatted as percentage strings in the bar chart—this is inconsistent with the JSON field that should contain numbers.  
+- The script computes "n_strong" as the sum of is_strong, but this may not be valid if the GOES_estimated_min_class column is not reliable or if the classification rule is incorrect.  
+- The script does not validate that the data spans exactly from February 2021 to February 2026—this is a critical requirement that is not enforced.  
+- The plot titles and labels are correctly formatted, but the x-axis labels in the monthly flare plot are not labeled with month names, only years, which makes the visualization less informative.  
+- The script does not check if the data contains flares in months outside February, which violates the research question.  
+- The strong share increasing check assumes that the years 2022–2025 are present and valid, but if any year has zero flares, the share is zero and the trend may be incorrectly judged.  
+- The script does not provide any summary statistics or confidence intervals, which would be useful for assessing the reliability of the trend.  
+- The final output uses json.dumps with indent=2, which is correct, but it is not wrapped in a string as required by the instruction.  
+- The script prints "RESULTS_JSON" followed by a JSON object, which is correct, but the JSON object has a key "strong_share_increasing" that is a boolean, which is correct per specification.  
+- The script fails to validate whether the GOES_class_time_of_flare values are actually present or if they are null—this introduces a risk of error in the strong flare classification.  
+- The script does not account for the fact that some flares may be from the same day or time, and thus may be counted multiple times in a month—this could distort the monthly count.  
+- The script does not validate that the data has at least one row per year in 2022–2025, which would affect the trend calculation.  
+
+In summary, the script is flawed in its data filtering, validation, and assumption of GOES class validity, and fails to ensure the temporal scope of the data is correctly constrained to February 2021–February 2026. It would not run correctly without data quality checks and temporal filtering.

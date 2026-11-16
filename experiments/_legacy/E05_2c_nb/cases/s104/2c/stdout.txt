@@ -1,0 +1,24 @@
+The monthly number of solar flares varied from February 2021 to February 2026, with the busiest month being 2024-09. The share of strong flares (GOES B4+) remained relatively stable across the years 2022–2025, with no consistent increase. Flare activity shows a peak in the late year 2024, followed by a decline in 2025. The distribution of flares is consistent across months, with no clear seasonal pattern. The strong flare share did not rise from year to year, indicating that the proportion of high-energy events has not increased. The data shows that the number of flares increased in 2024 but decreased in 2025, suggesting a cyclical pattern. The share of strong flares was highest in 2026, but this is not reflected in the trend from 2022 to 2025. The results indicate that solar activity fluctuates over time, with periods of high and low activity. The data supports a non-monotonic trend in solar flare intensity.
+RESULTS_JSON {
+  "n_months": 61,
+  "busiest_month": "2024-09",
+  "busiest_month_count": 1724,
+  "flares_per_year": {
+    "2021": 694,
+    "2022": 4787,
+    "2023": 6469,
+    "2024": 12330,
+    "2025": 7662,
+    "2026": 1134
+  },
+  "n_strong": 22894,
+  "pct_strong_per_year": {
+    "2021": 0.6729106628242075,
+    "2022": 0.7033632755379152,
+    "2023": 0.686659452774772,
+    "2024": 0.6954582319545823,
+    "2025": 0.6778908901070216,
+    "2026": 0.7486772486772487
+  },
+  "strong_share_increasing": false
+}

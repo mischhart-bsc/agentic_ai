@@ -1,0 +1,6 @@
+From February 2021 to February 2026, there were 60 months of solar flare observations.
+The busiest month was 2021-05 with 1724 flares.
+The total number of flares across the period was distributed as follows: {2021: 694, 2022: 4787, 2023: 6469, 2024: 12330, 2025: 7662, 2026: 1134}.
+There were 33076 strong flares (GOES min flux > 1e-7 W/m²/ster), representing a share of {2021: 100.0, 2022: 100.0, 2023: 100.0, 2024: 100.0, 2025: 100.0, 2026: 100.0} per year.
+The share of strong flares did not increase from year to year between 2022 and 2025; it remained constant at 100% across all years.
+Thus, the share of strong flares did not intensify, and all flares in the dataset were strong due to the high GOES flux values.

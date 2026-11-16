@@ -1,0 +1,16 @@
+- The code fails with an `IndexError` when accessing `.values[0]` on a potentially empty pivot table, indicating a critical bug in the loop logic that assumes data exists for every month-year combination.
+- The line `monthly_counts_filtered_pivot.loc[...]` uses `.get_level_values()` on an index that may not have been properly set up or may be empty, leading to an out-of-bounds access when the pivot table is empty or has no entries for a given year-month.
+- The code attempts to iterate over years and months in a loop to extract counts, but does not handle missing combinations or verify the existence of the pivot table before access, making it fragile and prone to crashes.
+- The variable `monthly_counts_filtered_pivot` is created from a pivot table that may not contain any data for certain years or months, especially if the filtered data is sparse or missing peak_UTC values from early 2021 onward.
+- The `pct_strong_per_year` dictionary is computed using `df_filtered.groupby('year')['is_strong_flare'].sum()` and division by total counts, but if `total_by_year` is zero for any year, this will cause a division by zero error — though it is not caught or handled.
+- The `strong_share_increasing` flag is computed only on years 2022–2025, but the input data may not contain sufficient rows for those years, leading to missing or invalid percentages.
+- The `n_months` is set to 60 (5 years × 12 months), but this is not derived from actual data — it's a hardcoded value and does not reflect the actual number of months with flares in the dataset.
+- The code assumes the busiest month is in the dataset, but if no flares exist in the period, this would fail or return invalid results.
+- The plots are generated, but the code fails before they are saved, so no plots are actually produced or saved.
+- The JSON output is written only if the code completes, but due to the crash, the file is never saved.
+- The final summary is printed, but it references values (like percentages) that are computed from invalid or missing data due to the errors.
+- The requirement to show every plot and save it as PNG is not fulfilled — the plots are not generated due to the early crash.
+- The code does not include a safeguard for empty data or missing entries, nor does it verify that the pivot table has valid entries before indexing.
+- The variable `max_count` is derived from a filtered list, but the code does not ensure that `monthly_counts_filtered_pivot` has any entries at all, leading to undefined behavior.
+- The `pct_strong_per_year` dictionary is built from aggregations that may be zero or missing, and the code does not guard against these edge cases.
+- The final results are not correctly computed or validated — the entire analysis is built on unstable and unverified data access.

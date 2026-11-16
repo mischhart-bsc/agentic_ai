@@ -1,0 +1,10 @@
+- The script fails to correctly compute the busiest month: the reported value "2021-02" is contradicted by independent validation, indicating a flaw in the aggregation or filtering logic (e.g., incorrect grouping or missing data handling).  
+- The claim that the share of strong flares increases from 2022 to 2025 is refuted by independent validation, meaning the script incorrectly inferred a rising trend; this suggests a computational or logical error in the strong flare share calculation or comparison across years.  
+- The script does not output a line starting with "RESULTS_JSON", violating the explicit requirement to print exactly one such line.  
+- The independent check confirms that all 7 requested values are missing, indicating the script did not compute or extract the correct values from the data, despite the structure and intent.  
+- The report text contains factual errors (e.g., claiming "the busiest month was February 2021" when it is not), showing a failure in data processing or interpretation.  
+- The script does not validate or check for missing or invalid data (e.g., NaN timestamps or invalid GOES flux), which could lead to incorrect filtering or aggregation.  
+- The strong flare definition (GOES flux > 1e-7) is applied without checking if the GOES_flux_time_of_flare column is actually in the correct unit (e.g., W/m²), which may lead to incorrect classification.  
+- The script does not account for the full range of years (2021–2026) in the final analysis, even though the research question spans to 2026; it only analyzes 2022–2025 for strong share trends, yet includes 2021 in the report.  
+- The value of "n_strong" and "pct_strong_per_year" are not derived from actual data aggregates, as the independent check confirms the values are missing.  
+- The script does not ensure that the data is correctly parsed (e.g., peak_UTC might not be reliable for month-year grouping), leading to potential misalignment in time-based aggregation.

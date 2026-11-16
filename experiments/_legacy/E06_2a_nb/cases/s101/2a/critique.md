@@ -1,0 +1,20 @@
+- The data is loaded from a file path "/data/stix_flarelist.csv", but the file is assumed to exist and be accessible—this is a runtime risk and not addressed in the code (no error handling or validation).
+- The timestamp parsing assumes a strict format (`%Y-%m-%dT%H:%M:%S.%f`), but the provided example values have inconsistent formatting (e.g., "2021-02-14T01:41:06.670" is valid, but no validation is done for malformed entries).
+- The condition for "strong flares" uses `goes_estimated_min_class` containing 'B4|C|M|X', but the data contains values like "B4", "B8", "B6"—this is correct, but the logic assumes that "B4" is the threshold, which is valid per GOES classification, but is not explicitly defined in the code.
+- The monthly aggregation uses only `start_UTC`, which is correct, but the data contains 33,076 rows—this may include many overlapping or near-identical flares, and the code does not validate that each row is a unique event.
+- The code does not check for missing values in critical fields like `goes_estimated_min_class` or `is_strong`, leading to potential errors when applying `str.contains()` on NaN values.
+- The `is_strong` flag is created using `str.contains('B4|C|M|X')`, but it may miss flares classified as 'X' if the value is not in the string (e.g., 'X' might be written as 'X0' or 'X1'). This introduces a classification risk.
+- The plot saves to `/outputs/monthly_flare_counts.png`, but there is no error handling if the directory is writable or if the file already exists—this is a minor but real risk.
+- The strong share increasing check runs only on years 2022–2025, but the data may not have full coverage in those years—this is assumed but not verified.
+- The `n_months` is calculated as the number of unique (year, month) pairs, which is correct, but the label "busiest month" is derived from a monthly count sum, which may not reflect the actual peak if there are multiple months with the same count.
+- The `pct_strong_per_year` calculation uses only `goes_estimated_min_class`, but the dataset has `goes_estimated_max_class` and `mean_class`—this is not leveraged, and the GOES classification might be inconsistent or ambiguous.
+- The code does not validate that the `start_UTC` column has valid dates or is not empty—this could cause parsing errors or silent failures.
+- The `error_with_imaging` and `att_in` columns are not used, indicating they are irrelevant to the research question, but their presence suggests the data has more depth than used.
+- The final JSON output is correctly structured, but it includes years beyond 2025 (e.g., 2021, 2026), even though the analysis only evaluates strong share from 2022–2025. This is inconsistent with the research question.
+- The data spans from 2021 to 2026, but the research question only asks about evolution from 2021 to 2026—this is addressed, but the "share of strong flares" is only evaluated from 2022 to 2025, not including 2021 or 2026, which contradicts the requirement of "across the full calendar years 2022–2025".
+- The code does not include any statistical testing (e.g., trend significance) or confidence intervals—only a simple comparison of percentages, which is insufficient for robust analysis.
+- The `pct_strong_per_year` values are computed correctly, but the `strong_share_increasing` flag is only true if the share rises each year, and the code correctly identifies a non-increasing trend as false—this logic is sound.
+- The final result includes a "n_strong" count, which is correct, but it is simply the sum of strong flares across all years—this is valid, but not clearly explained.
+- The code does not check the actual distribution of flare classes or whether the GOES class values are properly formatted (e.g., are they strings or floats?).
+
+Overall, the code is mostly functional but contains several critical omissions and assumptions that could lead to incorrect or misleading results, especially regarding classification and data validation.

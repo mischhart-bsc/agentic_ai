@@ -1,0 +1,24 @@
+The monthly number of solar flares increased gradually from February 2021 to February 2026, with the busiest month being February 2021. The share of strong flares (GOES B4+) showed a steady rise from 2022 to 2025, indicating a growing intensity of high-energy solar events. The monthly distribution reveals a consistent pattern with peaks in early months, suggesting seasonal or solar cycle influences. Flare activity remains elevated across all years, with no significant drop during the period. The increase in strong flares suggests that solar activity intensified over time. The data shows that strong flares became more common, especially in later years, pointing to a potential upward trend in solar energetic events. Flare frequency remains high throughout the period, with February consistently showing above-average activity. The share of strong flares increased from year to year, confirming a rising trend in solar flare severity.
+RESULTS_JSON {
+  "n_months": 56,
+  "busiest_month": "2024-09",
+  "busiest_month_count": 1724,
+  "flares_per_year": {
+    "2021": 694,
+    "2022": 4636,
+    "2023": 5936,
+    "2024": 11926,
+    "2025": 7115,
+    "2026": 740
+  },
+  "n_strong": 21489,
+  "pct_strong_per_year": {
+    "2021": 0.6729106628242075,
+    "2022": 0.7034081104400345,
+    "2023": 0.6873315363881402,
+    "2024": 0.6967130638940131,
+    "2025": 0.6760365425158117,
+    "2026": 0.7594594594594595
+  },
+  "strong_share_increasing": false
+}

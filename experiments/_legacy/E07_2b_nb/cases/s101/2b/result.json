@@ -1,0 +1,143 @@
+{
+  "experiment": "E07_2b_nb",
+  "seed": 101,
+  "version": "2b",
+  "parent": "E02_baseline_nb/s101/v1",
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 0,
+  "error_type": null,
+  "error_category": null,
+  "error_message": null,
+  "error_line": null,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "report_precision": 1.0,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "n_plots": 1,
+  "cost": {
+    "llm_calls": 2,
+    "prompt_tokens": 7290,
+    "completion_tokens": 1894,
+    "llm_seconds": 127.6,
+    "exec_seconds": 2.7,
+    "truncated": false
+  },
+  "funnel": {
+    "answered": true,
+    "code_found": true,
+    "ran": true,
+    "json_found": false,
+    "json_strict": false,
+    "keys_complete": false,
+    "any_fact": false,
+    "all_facts": false
+  },
+  "funnel_depth": 3,
+  "report": {
+    "overall": 0.531,
+    "dimensions": {
+      "execution": 1.0,
+      "completeness": 0.433,
+      "correctness": 0.25,
+      "method": 0.571,
+      "plots": 1.0
+    },
+    "flags": [
+      "RESULTS_JSON fehlt/unlesbar",
+      "falsche Aussage im Text: busiest_month",
+      "falsche Aussage im Text: strong_share_trend",
+      "keine GOES-Spalte verwendet",
+      "Klassenbuchstabe nicht sauber ausgewertet (z.B. contains statt str[0])",
+      "Trend nicht ueber volle Jahre 2022-2025",
+      "Report-Text fest im Code (nicht aus Ergebnissen erzeugt)"
+    ],
+    "details": {
+      "execution": {
+        "code_found": true,
+        "progress": 1.0
+      },
+      "completeness": {
+        "json_present": false,
+        "json_strict": false,
+        "json_keys": 0.0,
+        "n_sentences": 7,
+        "length_ok": 1.0,
+        "topics": {
+          "monthly_evolution": true,
+          "busiest_month": true,
+          "yearly_counts": false,
+          "strong_share": true,
+          "trend_answer": true,
+          "data_caveat": false
+        },
+        "topic_coverage": 0.667,
+        "n_plots": 1,
+        "plots_present": 0.5
+      },
+      "correctness": {
+        "checks": {
+          "n_months": false,
+          "busiest_month": false,
+          "busiest_month_count": false,
+          "flares_per_year": false,
+          "n_strong": false,
+          "pct_strong_per_year": false,
+          "strong_share_increasing": false
+        },
+        "fact_score": 0.0,
+        "text_numbers": 1,
+        "text_precision": 1.0,
+        "text_json_consistency": null,
+        "claimed_busiest_month": "2021-02",
+        "claimed_strong_increase": true,
+        "claims": {
+          "busiest_month": false,
+          "strong_share_trend": false
+        },
+        "claims_score": 0.0,
+        "text_facts": {
+          "n_months": null,
+          "busiest_month": false,
+          "busiest_month_count": null,
+          "n_strong": null,
+          "strong_share_increasing": false
+        },
+        "text_fact_score": 0.0
+      },
+      "method": {
+        "time_column": 1.0,
+        "goes_column": 0.0,
+        "class_letter": 0.0,
+        "no_misparse": 1.0,
+        "full_period": 1.0,
+        "trend_full_years": 0.0,
+        "dynamic_report": 0.0,
+        "errors_coerce": true,
+        "pct_matches_obs_column": false
+      },
+      "plots": {
+        "n_plots": 1,
+        "files": [
+          {
+            "name": "monthly_flare_counts.png",
+            "bytes": 326305,
+            "std": 0.112,
+            "ok": true
+          }
+        ],
+        "valid_ratio": 1.0,
+        "label_ratio": 1.0
+      }
+    }
+  }
+}

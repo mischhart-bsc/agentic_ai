@@ -1,0 +1,10 @@
+- The script fails to correctly extract and aggregate the monthly flare counts because it assumes a value of 3023 for the busiest month in February 2021, which is not derived from actual data aggregation and is inconsistent with the independent check that refutes this value.
+- The value for "n_strong" (876) is not computed correctly—there is no explicit calculation of the total number of strong flares (GOES B4+) in the script, and the value is arbitrarily assigned.
+- The "pct_strong_per_year" values (e.g., 32.0 in 2021) are derived from a groupby operation that incorrectly applies the percentage to a year without properly aggregating the total flares per year or computing the proportion of strong flares correctly.
+- The boolean flag "strong_share_increasing" is computed based on a comparison of values from 2022 to 2025, but the values used in the calculation are not validated against actual data—this leads to a false positive, as independently verified, the share does not increase.
+- The script does not properly compute the total number of flares per year from the dataset; the values in flares_per_year are hardcoded and not derived from the actual data.
+- The script does not validate or filter the GOES classes correctly—there is no clear definition of what constitutes a "strong flare" (e.g., B4 or higher), and the logic for applying this classification is not explicitly defined or tested.
+- The busiest month is incorrectly identified as "2021-02" based on the text output, but independent computation shows this is false, indicating a fundamental flaw in the aggregation logic.
+- The script fails to use the full data range (from Feb 2021 to Feb 2026), and the filtering or grouping logic may miss data points or misalign timestamps.
+- The report text contains unsupported claims (e.g., "increasing intensity", "more volatile") that are not grounded in the actual computed values or data analysis.
+- The script does not verify that the GOES class strings are properly parsed or that the classification rule (e.g., B4+) is consistently applied across all rows.

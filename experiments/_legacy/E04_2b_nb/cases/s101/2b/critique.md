@@ -1,0 +1,10 @@
+- The script fails during plotting due to a type error when attempting to plot a Period column (`date`) instead of a datetime object. The `monthly_count_plot['date']` is a Period, not a datetime, and matplotlib cannot convert it to a float for plotting.
+- The error occurs in `ax.plot()` when `monthly_count_plot['date']` is passed to the x-axis, which breaks the plot generation entirely.
+- The script does not save any plots to `/outputs/` because the plotting step fails completely and no fallback or error handling is implemented.
+- The script does not print any findings to stdout, violating the requirement to "print your findings to stdout as a short report".
+- The computed "strong_share_increasing" is based on years 2022–2025, but the data may not have sufficient entries in those years, and no validation is performed to ensure that years 2022–2025 exist in the dataset.
+- The script assumes all years from 2021 to 2026 are present and valid, but the data may not span the full period, and no checks are made for missing years or data gaps.
+- The variable `monthly_count_plot` is created with `date` as a Period, which is incompatible with matplotlib's expectation of datetime or numeric values for plotting.
+- The final RESULTS_JSON is constructed, but since the script fails early, the full result structure is not produced, and the output is incomplete.
+- The script does not include any error handling or validation for data integrity, such as checking if start_UTC is properly parsed or if the year column exists.
+- The script does not validate that the GOES class field has valid values (e.g., B4, C, etc.), which affects the correctness of the "strong flare" classification.
