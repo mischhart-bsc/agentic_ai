@@ -1,0 +1,14 @@
+- The code fails due to an incorrect access of `busiest_month`: `busiest_month` is a `numpy.int32` (from `idxmax`) rather than a `pd.Period` or `datetime`, and thus has no `.year` or `.month` attributes. This results in a direct `AttributeError`.
+- The `monthly_flare_counts` is a pivot table with index `year` and columns `month`, so `idxmax(axis=1)` returns a Series of months (as integers), not a `Period` object. This is misused and leads to invalid attribute access.
+- The `monthly_flare_counts` is not properly indexed or formatted to extract the month-year pair as a string; the logic to find the busiest month is flawed and does not correctly extract a month object.
+- The `flares_per_year` dictionary is constructed using `annual_flare_count`, but the original `df_clean` might not contain full years from 2021 to 2026, and the aggregation may be incomplete or misaligned.
+- The `strong_share_increasing` logic is applied to years 2022–2025, but the data might not have sufficient entries in those years, and the check is based on a subset that may not reflect the full behavior.
+- The final `results.json` file is not saved as per the requirement, and no output message is printed, violating the requirement to print a summary.
+- No plots are saved, despite the requirement to show and save every plot.
+- The code does not handle edge cases, such as missing months or zero counts, and does not validate data range (e.g., no check that years are between 2021 and 2026).
+- The variable `busiest_month` is used before being properly defined as a period or datetime index, leading to runtime error.
+- The plot for strong flare share uses `years_list` and `pct_values`, but these are not derived from the full dataset — the data may not contain flares for all years, and the subset (2022–2025) may be incomplete.
+- The final summary includes a string that references `pct_strong_per_year` but doesn't verify the years are within 2022–2025, risking inconsistency with the research question.
+- The code uses `monthly_flare_counts.loc[year]` but the index of `monthly_flare_counts` is not properly aligned with the actual `year` and `month` values due to incorrect pivoting or grouping.
+- The `n_strong` value is calculated on a filtered subset (2022–2025), but the research question asks about the full period (2021–2026), making this inconsistent.
+- The requirement to "use all rows of the file" is not fully met in the analysis of strong flares, which is limited to 2022–2025 only.

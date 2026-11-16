@@ -1,0 +1,9 @@
+- The code fails due to an invalid frequency specification: `freq='M'` is no longer supported in pandas and must be replaced with `'ME'` (month end), which was not corrected.
+- The research question asks for the evolution of flares from February 2021 to February 2026, but the code attempts to generate a date range with `freq='M'`, which causes a runtime error and prevents the full analysis from completing.
+- The monthly flare counts are computed correctly, and the plot is saved, but the failure in the date_range operation means the monthly timeline and subsequent year-by-year breakdowns are not properly constructed or validated.
+- The variable `monthly_counts_sorted` is created but not used to derive the busiest month in the correct calendar context—this is a critical error because the data is grouped by period, but the failure in date handling breaks the entire timeline logic.
+- The strong share increasing check relies on `pct_strong_series`, which is derived from `yearly_stats`, but this data is only available for years 2022–2025, and if the monthly data fails to be properly aligned, the percentages may be incorrect or missing.
+- The final summary prints a text, but since the code fails early, the summary is not actually computed or printed—this violates the requirement to "print your findings".
+- The results JSON file is not saved because the execution fails before reaching the final save step.
+- The code does not handle edge cases such as missing or invalid start_UTC values properly—though it uses `dropna`, it does not validate that the data spans the full period from Feb 2021 to Feb 2026.
+- The code assumes that flares are assigned to the month of their start time, which is correct, but this logic is broken by the failure in date handling, rendering the entire analysis invalid.

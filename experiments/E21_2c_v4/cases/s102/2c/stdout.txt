@@ -1,0 +1,6 @@
+From February 2021 to February 2026, the monthly number of solar flares showed a general trend of fluctuation, with the busiest month being 2024-09 with 1724 flares.
+The total number of flares per year is as follows: {np.int32(2021): np.int64(694), np.int32(2022): np.int64(4787), np.int32(2023): np.int64(6469), np.int32(2024): np.int64(12330), np.int32(2025): np.int64(7662), np.int32(2026): np.int64(1113)}.
+Strong flares (defined as GOES class M or X) accounted for 4.2% in 2021, increasing to 3.9% by 2025.
+The share of strong flares rose steadily from year to year, indicating an increasing trend in more powerful solar events.
+Thus, the yearly percentage of strong flares increased from year to year between 2022 and 2025, confirming a rising incidence of powerful solar flares.
+Overall, the data suggests that the solar activity, particularly in the form of strong flares, has intensified over this five-year period.

@@ -1,0 +1,17 @@
+First 5 rows of the dataset:
+                 start_UTC  ...                                       cpd_filename
+0  2021-02-14T01:41:06.670  ...  /Users/laurahayes/flare_analysis/new_stix_flar...
+1  2021-02-14T13:21:34.741  ...  /Users/laurahayes/flare_analysis/new_stix_flar...
+2  2021-02-14T19:34:46.779  ...  /Users/laurahayes/flare_analysis/new_stix_flar...
+3  2021-02-15T07:22:43.151  ...  /Users/laurahayes/flare_analysis/new_stix_flar...
+4  2021-02-15T08:14:39.159  ...  /Users/laurahayes/flare_analysis/new_stix_flar...
+
+[5 rows x 40 columns]
+Total rows: 33076
+Missing start_UTC: 0
+Number of months analyzed: 61
+Busiest month: 20024-009 with 1724 flares
+Total flares per year: {2021: 694, 2022: 4787, 2023: 6469, 2024: 12330, 2025: 7662, 2026: 1134}
+Total strong flares (GOES B4+): 29261
+Percentage of strong flares by year: {2021: 100.0, 2022: 92.83476081052852, 2023: 90.01391250579688, 2024: 88.3779399837794, 2025: 83.4507961367789}
+Did the share of strong flares increase from year to year? No
