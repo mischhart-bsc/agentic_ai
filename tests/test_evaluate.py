@@ -63,7 +63,7 @@ def test_categories():
 
     assert error_info("", 0, "x") == {}
     assert error_info("no code block found", None, None)["error_category"] == "no_code"
-    assert error_info("TIMEOUT nach 120s", -1, "x")["error_category"] == "exec_timeout"
+    assert error_info("TIMEOUT after 120s", -1, "x")["error_category"] == "exec_timeout"
 
 
 def test_evaluate_version():
@@ -218,9 +218,9 @@ def test_report_quality():
     assert hallu["dimensions"]["execution"] == 1.0
     assert hallu["dimensions"]["correctness"] <= 0.2, hallu["details"]["correctness"]
     assert hallu["details"]["correctness"]["claims"] == {"busiest_month": False, "strong_share_trend": False}
-    assert "Report-Text fest im Code (nicht aus Ergebnissen erzeugt)" in hallu["flags"]
+    assert "report text hard-coded (not generated from results)" in hallu["flags"]
     # the observed GOES column is only a hint now (both definitions of "strong" are allowed): no score penalty
-    assert "Hinweis: Prozente entsprechen der GOES-Spalte der Erdseite" in hallu["flags"]
+    assert "Note: percentages match the Earth-side GOES column" in hallu["flags"]
     assert hallu["details"]["method"]["goes_column"] == 1.0
     assert hallu["overall"] < 0.5
 

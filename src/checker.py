@@ -30,7 +30,7 @@ def results_file_text(out_dir):
 
 
 def _find(stdout, strict=False):
-    """Text des Objekts nach 'RESULTS_JSON:' - auch wenn es mehrzeilig ist.
+    """Text of the object after 'RESULTS_JSON:' - also when it spans several lines.
     strict=False also accepts 'RESULTS_JSON' without ':' and the object on the next line
     (seen in E02-E08: print("RESULTS_JSON", json.dumps(...)) and print("RESULTS_JSON"); print(dict))."""
     stdout = stdout or ""
@@ -50,7 +50,7 @@ def _find(stdout, strict=False):
 
 
 def strict_json_ok(stdout, out_dir=None):
-    """True, wenn RESULTS_JSON gueltiges JSON ist (Format-Metrik): outputs/results.json, sonst exakt 'RESULTS_JSON: {...}'."""
+    """True if the results are valid JSON (format metric): outputs/results.json, otherwise exactly 'RESULTS_JSON: {...}' in stdout."""
     s = results_file_text(out_dir)
     if s is None:
         s = _find(stdout, strict=True)
@@ -63,7 +63,7 @@ def strict_json_ok(stdout, out_dir=None):
 
 
 def extract_results(stdout, out_dir=None):
-    """Tolerant: echtes JSON oder Python-Dict-Ausgabe (inkl. numpy-Typen). dict oder None.
+    """Tolerant: real JSON or Python dict output (incl. numpy types). A dict or None.
     outputs/results.json wins if it exists; otherwise the RESULTS_JSON block in stdout."""
     s = results_file_text(out_dir)
     if s is None:
@@ -100,6 +100,35 @@ def _dict_equal(a, b, rel_tol):
     return set(a) == set(b) and all(_num_equal(a[k], b[k], rel_tol) for k in b)
 
 
+def _dict_credit(a, b, rel_tol):
+    """Share of the ground-truth years that the model got right (extra or missing years are not an all-or-nothing failure)."""
+    if not isinstance(a, dict):
+        return 0.0
+    a = {str(k)[:4]: v for k, v in a.items()}
+    return sum(k in a and _num_equal(a[k], v, rel_tol) for k, v in b.items()) / len(b)
+
+
+def credit(results, checks=None):
+    """Partial credit per fact, 0..1 (None = skipped). Same tolerances as check(); the difference is only that
+    a {year: value} fact earns the share of correct years instead of 0 or 1. check() stays the strict yes/no."""
+    checks = check(results) if checks is None else checks
+    out = {}
+    for mk, gk in KEYS.items():
+        if checks.get(mk) is None:
+            out[mk] = None
+        elif isinstance(GT[gk], dict):
+            out[mk] = round(_dict_credit((results or {}).get(mk), {str(k): v for k, v in GT[gk].items()}, 0.01), 3)
+        else:
+            out[mk] = 1.0 if checks[mk] else 0.0
+    return out
+
+
+def score_partial(credits):
+    """Mean partial credit of the checked facts (skipped facts are ignored)."""
+    valid = [v for v in credits.values() if v is not None]
+    return round(sum(valid) / len(valid), 3) if valid else 0.0
+
+
 def check(results):
     """Return {key: True/False/None}. None = fact not in ground truth (skipped)."""
     out = {}
@@ -129,7 +158,7 @@ YEARS = {2021, 2022, 2023, 2024, 2025, 2026}
 
 
 def _gt_numbers(obj):
-    """Alle Zahlen aus der Ground Truth, flach (Werte, nicht Jahres-Schluessel)."""
+    """All numbers of the ground truth, flat (values, not year keys)."""
     if isinstance(obj, dict):
         return [n for v in obj.values() for n in _gt_numbers(v)]
     if isinstance(obj, (int, float)) and not isinstance(obj, bool):

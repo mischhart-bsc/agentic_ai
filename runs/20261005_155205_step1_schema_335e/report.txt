@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/code/step_002.py", line 46, in <module>
-    all_months_sorted = sorted(all_months, key=lambda x: x.start.year * 100 + x.start.month)
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/code/step_002.py", line 46, in <lambda>
-    all_months_sorted = sorted(all_months, key=lambda x: x.start.year * 100 + x.start.month)
-                                                         ^^^^^^^
-AttributeError: 'Period' object has no attribute 'start'

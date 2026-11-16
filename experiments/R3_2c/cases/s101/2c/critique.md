@@ -1,0 +1,10 @@
+- The busiest month is incorrectly identified: the code reports "2021-05" as the busiest month, but the independent check refutes this value, indicating a bug in the monthly flare counting or selection logic.  
+- The flares_per_year values are incorrect: the computed counts (e.g., 2022: 4787, 2023: 6469) are refuted by independent computation, showing a failure in aggregation or grouping by year.  
+- pct_strong_per_year values are wrong: the computed percentages (e.g., 5.16% in 2022) are refuted, suggesting an error in filtering or calculation of strong flares.  
+- The report text contains false claims: it states that the "share of strong flares increases steadily" and that the "highest monthly count occurs in February 2025", both of which are refuted by independent validation.  
+- The strong_share_increasing flag is incorrectly set to false when the independent check confirms it should be true, indicating a flaw in the trend comparison logic across years.  
+- The code does not filter or validate the data range correctly: the analysis includes all rows from February 2021 to February 2026, but the derived monthly counts are not aligned with the actual date range or proper bucketing.  
+- The logic for finding the busiest month fails: it likely uses an incorrect date parsing or aggregation step, as the result does not match the actual peak in the data.  
+- The code does not correctly account for the full period (Feb 2021 to Feb 2026), and the monthly grouping may not be properly aligned with the actual month-year structure.  
+- The plot is generated correctly but does not validate against the actual data, so it may visually appear correct but not represent accurate counts.  
+- The code fails to verify that the strong flare classification (GOES class starting with M/X) is correctly applied to the data.

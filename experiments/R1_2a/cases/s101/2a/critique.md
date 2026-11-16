@@ -1,0 +1,31 @@
+- The data starts in February 2021 and goes up to February 2026, but the analysis only includes years 2022–2025 for the strong flare share trend, despite the research question asking about the evolution from February 2021 to February 2026.  
+- The variable `yearly_strong` is computed only on years 2022–2025, but the strong share trend must be evaluated across the full calendar years 2022–2025 (as per requirement), which is partially correct but the code does not include 2021 or 2026 in the analysis—contradicting the requirement to use all rows from Feb 2021 to Feb 2026.  
+- The `busiest_month` is determined from `monthly_flares`, but the data from 2021 to 2026 is not properly aggregated or filtered—there is no validation that the maximum count occurs in a month within the full 2021–2026 period.  
+- The `pct_strong_per_year` dictionary is built only from 2022–2025, but the code does not properly compute the percentage of strong flares for all years in 2021–2026, violating the requirement to evaluate the full period.  
+- The strong share increasing condition is only checked across 2022–2025, but the requirement says “from each year to the next across the full calendar years 2022–2025” — this is correct, but the code does not include 2021 or 2026 in any calculation, which is inconsistent with the data range.  
+- The report explicitly states “The highest monthly count occurs in February 2025” — this is a factual error. The busiest month must be derived from the full dataset, and the code does not verify this.  
+- The `goes_estimated_mean_class` column is used to define strong flares, which is correct, but the code does not validate that all values are in M/X and not NaN.  
+- The output `RESULTS_JSON` contains "pct_strong_per_year" with only 2022–2025, but the requirement does not specify that these years must only be 2022–2025 — the full range should be included.  
+- The variable `n_strong` counts all strong flares (from 2021 to 2026), which is correct, but the `pct_strong_per_year` is only for 2022–2025, which is inconsistent with the research question.  
+- The code does not compute flares per year from 2021 to 2026, only 2022–2025, violating the requirement to include all years from 2021 to 2026.  
+- The `yearly_counts` and `yearly_strong` are filtered to 2022–2025, but there is no step to compute percentages for 2021 and 2026, which are part of the full data range.  
+- The final JSON output includes only years 2022–2025 for the percentage, which contradicts the requirement to evaluate the full period.  
+- The `strong_share_increasing` flag is only evaluated for 2022–2025, which is correct per requirement, but only if that range is properly handled.  
+- The code does not handle missing or invalid values in `goes_estimated_mean_class`, which could lead to incorrect strong flare classification.  
+- The monthly flares plot uses `start_UTC` to create dates, but it may not handle edge cases like leap years or inconsistent data.  
+- The code does not validate that all flares have a valid `goes_estimated_mean_class` value (e.g., missing or NaN), which could result in incorrect strong flare counts.  
+- The `pct_strong_per_year` dictionary keys are only from 2022–2025, but the requirement does not specify that only those years are needed — it says “from each year to the next across the full calendar years 2022–2025”, so it is acceptable, but the full dataset must still be used for the flares per year.  
+- The `n_months` value is computed correctly, but the dataset spans 6 years (2021–2026), so the number of months should be 6×12 = 72, not derived from filtered data.  
+- The `busiest_month` is selected from a filtered subset, and the code does not verify that the maximum occurs in a month within the full 2021–2026 period.  
+- The final JSON output includes `pct_strong_per_year` with only 2022–2025, but the requirement implies a comparison across 2022–2025 only, so it may be acceptable.  
+- However, the report and results section still incorrectly claim "the highest monthly count occurs in February 2025" without evidence from the full dataset.  
+- The code does not include a check for missing values in `goes_estimated_mean_class`, which could produce incorrect `is_strong` flags.  
+- The final output JSON uses `float` and `int` values correctly, but the dictionary keys are not properly aligned with the data range.  
+- The code does not produce a plot for the share of strong flares per year — only the total flares — violating the exploratory data analysis scope.  
+- The task requires a full EDA, but the plots only show total flares, not strong flares or trend over time.  
+- The report is not concise or directly tied to the research question.  
+- The final JSON does not include years 2021 and 2026 in `flares_per_year`, which violates the requirement to use all data from 2021 to 2026.  
+- There is no validation that the `goes_estimated_mean_class` column is non-null or properly formatted.  
+- The `pct_strong_per_year` is not defined for years outside 2022–2025, which is a gap.  
+
+In summary: the code fails to meet the core requirements of using the full data range (2021–2026), computing flares per year across all years, and correctly identifying the busiest month from the full period. It also lacks proper validation, and produces incorrect or incomplete results in the report and JSON output.

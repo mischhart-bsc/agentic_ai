@@ -1,0 +1,16 @@
+- The data spans from February 2021 to February 2026, but the analysis incorrectly identifies "2021-05" as the busiest month, which is outside the expected range and contradicts the data timeline.  
+- The yearly flare counts show a jump from 2023 to 2024 (from 6,469 to 12,330), followed by a drop to 7,662 in 2025, but the code does not validate or account for this anomaly in the data, and the trend is not justified.  
+- The strong flare percentage is reported as increasing from 2022 to 2025, but the actual values show a decline from 2024 to 2025 (5.16% to 3.86%), and the code incorrectly sets "strong_share_increasing" to true when it should be false.  
+- The code uses `df['start_UTC'].dt.year` and `dt.month` to build monthly groups, but the data might not be evenly distributed or may have missing months, yet the code does not validate or impute missing months correctly.  
+- The busiest month is incorrectly identified as May 2021 instead of a month in the 2022–2025 range, which is inconsistent with the research question (evolution from Feb 2021 to Feb 2026) and the expected trend.  
+- The output report contains factual errors, such as stating "The highest monthly count occurs in February 2025" when the data shows a peak in May 2021.  
+- The code does not filter or validate years beyond 2025 (only 2022–2025 are considered), and the research question asks about evolution from Feb 2021 to Feb 2026, but the analysis is incomplete and misaligned with the full time span.  
+- The strong share is computed per year but does not account for the correct year boundaries (e.g., 2021–2022 vs. 2022–2023), and the aggregation is flawed because it uses raw counts without ensuring proper time alignment.  
+- The final JSON output contains invalid data: "n_months" is 61, which is not the total number of distinct months from 2021 to 2026 (should be 60 months), and the busiest month is not in the expected range.  
+- The code produces a plot with a valid time series, but the x-axis labels and data points are misleading due to the incorrect peak month and lack of clear labeling of the full span.  
+- The strong share increasing flag is computed incorrectly: it compares only the values in 2022–2025 and fails to detect a decreasing trend, yet it outputs `true` when it should be `false`.  
+- The code does not include any error handling or data validation (e.g., for missing or malformed timestamps), which could break execution if the input data had inconsistent formats.  
+- The output report contains statements that are factually incorrect or unsupported by the data (e.g., “The highest monthly count occurs in February 2025”).  
+- The code does not verify that the strong flare classification (M/X) is correctly applied to the GOES class strings.  
+- The report and JSON output do not reflect the actual trend in the data, which is likely more stable or cyclical, not showing a clear rise in strong flares.  
+- The code does not check for data gaps or missing values, which may affect the accuracy of monthly and yearly counts.

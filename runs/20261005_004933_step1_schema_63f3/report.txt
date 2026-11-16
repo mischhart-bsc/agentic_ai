@@ -1,7 +1,0 @@
-Exploratory Analysis Report:
-The monthly number of solar flares increased steadily from February 2021 to February 2026, with the highest activity observed in February 2021 (count: 123).
-The busiest month was February 2021, with 123 flares recorded. The share of strong flares (GOES M or X class) increased gradually from 2022 to 2025, indicating a growing trend in high-intensity solar activity.
-The data shows that while the total number of flares rose over time, the proportion of strong flares (M and X class) rose significantly, suggesting an intensification of solar activity in recent years.
-This trend may indicate long-term changes in solar cycle behavior or increased solar activity during the current solar maximum phase.
-The monthly distribution of flares is most active in early months, with peaks in February and March, and shows a consistent pattern across years.
-The strong flare share increased from year to year, with the highest share in 2025, suggesting a sustained rise in energetic solar events.

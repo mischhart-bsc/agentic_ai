@@ -1,0 +1,64 @@
+Traceback (most recent call last):
+  File "pandas/_libs/tslibs/parsing.pyx", line 670, in pandas._libs.tslibs.parsing.dateutil_parse
+ValueError: day is out of range for month
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimelike.py", line 547, in _validate_comparison_value
+    other = self._scalar_from_string(other)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimes.py", line 552, in _scalar_from_string
+    return Timestamp(value, tz=self.tz)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/tslibs/timestamps.pyx", line 2738, in pandas._libs.tslibs.timestamps.Timestamp.__new__
+  File "pandas/_libs/tslibs/conversion.pyx", line 367, in pandas._libs.tslibs.conversion.convert_to_tsobject
+  File "pandas/_libs/tslibs/conversion.pyx", line 658, in pandas._libs.tslibs.conversion.convert_str_to_tsobject
+  File "pandas/_libs/tslibs/parsing.pyx", line 321, in pandas._libs.tslibs.parsing.parse_datetime_string
+  File "pandas/_libs/tslibs/parsing.pyx", line 674, in pandas._libs.tslibs.parsing.dateutil_parse
+pandas._libs.tslibs.parsing.DateParseError: day is out of range for month: 2026-02-29
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimelike.py", line 991, in _cmp_method
+    other = self._validate_comparison_value(other)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimelike.py", line 550, in _validate_comparison_value
+    raise InvalidComparison(other) from err
+pandas.errors.InvalidComparison: 2026-02-29
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 28, in <module>
+    df_filtered = df[(df['start_UTC'] >= '2021-02-01') & (df['start_UTC'] <= '2026-02-29')]
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/ops/common.py", line 85, in new_method
+    return method(self, other)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arraylike.py", line 54, in __le__
+    return self._cmp_method(other, operator.le)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/series.py", line 6735, in _cmp_method
+    res_values = ops.comparison_op(lvalues, rvalues, op)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/ops/array_ops.py", line 341, in comparison_op
+    res_values = op(lvalues, rvalues)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/ops/common.py", line 85, in new_method
+    return method(self, other)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arraylike.py", line 54, in __le__
+    return self._cmp_method(other, operator.le)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimelike.py", line 995, in _cmp_method
+    return invalid_comparison(self, other, op)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/ops/invalid.py", line 55, in invalid_comparison
+    raise TypeError(f"Invalid comparison between dtype={left.dtype} and {typ}")
+TypeError: Invalid comparison between dtype=datetime64[us] and str

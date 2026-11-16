@@ -14,7 +14,7 @@ import json
 import re
 from pathlib import Path
 
-from src.checker import GT, KEYS, check, extract_results, numbers_in, report_precision, score, strict_json_ok
+from src.checker import GT, KEYS, check, credit, extract_results, numbers_in, report_precision, score, score_partial, strict_json_ok
 
 # Ordered rules: the first matching pattern decides the category.
 # Built from the final error lines of all runs up to 2026-10-09 (see tests/test_evaluate.py).
@@ -86,8 +86,10 @@ def facts_of(stdout, out_dir=None):
     so a change of the parser applies to every experiment; result.json itself is not rewritten."""
     results = extract_results(stdout, out_dir)
     checks = check(results)
+    credits = credit(results, checks)
     return {"results_json_found": results is not None, "results_json_strict": strict_json_ok(stdout, out_dir),
-            "checks": checks, "fact_score": score(checks)}
+            "checks": checks, "fact_score": score(checks),
+            "credits": credits, "fact_score_partial": score_partial(credits)}
 
 
 def funnel(result, stdout, out_dir=None):
@@ -256,9 +258,9 @@ def _json_type_ok(value, kind):
 
 def _eval_execution(code, result, flags):
     if result.get("cost", {}).get("truncated"):
-        flags.append("Antwort abgeschnitten (max_tokens)")
+        flags.append("answer cut off (max_tokens)")
     if not (code or "").strip():
-        flags.append("kein Code-Block")
+        flags.append("no code block")
         return 0.0, {"code_found": False, "progress": 0.0}
     if result.get("exit_code") == 0:
         return 1.0, {"code_found": True, "progress": 1.0}
@@ -271,7 +273,7 @@ def _eval_completeness(results, text, result, n_plots, flags):
     m = {"json_present": results is not None, "json_strict": bool(result.get("results_json_strict"))}
     if results is None:
         m["json_keys"] = 0.0
-        flags.append("RESULTS_JSON fehlt/unlesbar")
+        flags.append("RESULTS_JSON missing/unreadable")
     else:
         ok = [_json_type_ok(results.get(k), t) for k, t in JSON_SCHEMA.items()]
         m["json_keys"] = round(sum(ok) / len(ok), 3)
@@ -283,7 +285,7 @@ def _eval_completeness(results, text, result, n_plots, flags):
     m["length_ok"] = (1.0 if SENTENCES_MIN <= n_sent <= SENTENCES_MAX
                       else 0.5 if SENTENCES_MIN - 2 <= n_sent <= SENTENCES_MAX + 4 else 0.0)
     if n_sent == 0:
-        flags.append("kein Report-Text")
+        flags.append("no report text")
     m["topics"] = {t: bool(re.search(rx, text, re.I)) for t, rx in TOPICS.items()}
     m["topic_coverage"] = round(sum(m["topics"].values()) / len(TOPICS), 3)
     m["n_plots"] = n_plots
@@ -363,7 +365,7 @@ def _eval_correctness(results, text, result, flags):
     m = {"checks": result.get("checks") or {}, "fact_score": result.get("fact_score") or 0.0}
     wrong = [k for k, v in m["checks"].items() if v is False]
     if results is not None and wrong:
-        flags.append("falsche JSON-Werte: " + ", ".join(wrong))
+        flags.append("wrong JSON values: " + ", ".join(wrong))
     nums = numbers_in(text)
     m["text_numbers"] = len(nums)
     m["text_precision"] = report_precision(text)                # one implementation: src/checker.report_precision (always fresh)
@@ -371,7 +373,7 @@ def _eval_correctness(results, text, result, flags):
     m["text_json_consistency"] = (round(sum(_matches(n, json_pool) for n in nums) / len(nums), 3)
                                   if nums and json_pool else None)
     if m["text_precision"] is not None and m["text_precision"] < 0.5:
-        flags.append("Zahlen im Report-Text stimmen nicht mit den Daten")
+        flags.append("numbers in the report text do not match the data")
     sents, claims = sentences(text), {}
     busiest = _claim_busiest(sents)
     if busiest is not None:
@@ -415,24 +417,24 @@ def _eval_method(code, results, flags):
         m["time_column"] = 1.0
     elif "peak_UTC" in code:
         m["time_column"] = 0.5
-        flags.append("zaehlt nach peak_UTC statt start_UTC")
+        flags.append("counts by peak_UTC instead of start_UTC")
     else:
         m["time_column"] = 0.0
-        flags.append("keine echte Zeitspalte verwendet")
+        flags.append("no real time column used")
 
     uses_est = re.search(r"goes_estimated_mean_(class|flux)", code) is not None
     uses_obs = re.search(r"GOES_(class|flux)_time_of_flare", code) is not None
     m["goes_column"] = 1.0 if (uses_est or uses_obs) else 0.0
     if uses_obs and not uses_est:        # hint only (weight 0): both definitions of "strong" are allowed
-        flags.append("Hinweis: GOES_class_time_of_flare (nur Erdseite) statt STIX-Schaetzung")
+        flags.append("Note: GOES_class_time_of_flare (Earth side only) used instead of the STIX estimate")
     elif not (uses_est or uses_obs):
-        flags.append("keine GOES-Spalte verwendet")
+        flags.append("no GOES column used")
 
     letter = re.search(r"\.str\[0\]|\.str\[:1\]|\.str\.startswith|\^\[?MX|\[0\]\s*in\s*\(?\[?['\"]M", code)
     threshold = re.search(r"(mean_)?flux[^\n]*>=?\s*1e-0?5", code)
     m["class_letter"] = 1.0 if (letter or threshold) else 0.0
     if not (letter or threshold):
-        flags.append("Klassenbuchstabe nicht sauber ausgewertet (z.B. contains statt str[0])")
+        flags.append("class letter not evaluated cleanly (e.g. contains instead of str[0])")
 
     misparse = re.search(r"to_datetime\(\s*\w+\[\s*['\"]GOES", code, re.I)
     m["no_misparse"] = 0.0 if misparse else 1.0
@@ -442,31 +444,31 @@ def _eval_method(code, results, flags):
     cut = re.search(r"2026-02-01|range\(\s*2021\s*,\s*2026\s*\)", code)
     m["full_period"] = 0.0 if cut else 1.0
     if cut:
-        flags.append("Zeitraum abgeschnitten (Feb 2026 fehlt)")
+        flags.append("time range cut off (Feb 2026 missing)")
 
     full_years = (r"range\(\s*2022\s*,\s*2026\s*\)|between\(\s*2022\s*,\s*2025\s*\)"
                   r"|2022\s*:\s*2025|\[\s*2022\s*,\s*2023\s*,\s*2024\s*,\s*2025\s*\]")
     m["trend_full_years"] = 1.0 if re.search(full_years, code) else 0.0
     if not m["trend_full_years"]:
-        flags.append("Trend nicht ueber volle Jahre 2022-2025")
+        flags.append("trend not over the full years 2022-2025")
 
     hard = _hardcoded_report(code)
     m["dynamic_report"] = None if hard is None else (0.0 if hard else 1.0)
     if hard:
-        flags.append("Report-Text fest im Code (nicht aus Ergebnissen erzeugt)")
+        flags.append("report text hard-coded (not generated from results)")
 
     m["errors_coerce"] = re.search(r"errors\s*=\s*['\"]coerce", code) is not None       # diagnosis, no score
     m["pct_matches_obs_column"] = bool(results) and _dict_close(
         results.get("pct_strong_per_year"), GT.get("pct_strong_per_year_WRONG_goes_time_col"))
     if m["pct_matches_obs_column"]:
-        flags.append("Hinweis: Prozente entsprechen der GOES-Spalte der Erdseite")
+        flags.append("Note: percentages match the Earth-side GOES column")
     return _weighted({k: (m[k], w) for k, w in METHOD_WEIGHTS.items()}), m
 
 
 def _eval_plots(plot_files, code, flags):
     m = {"n_plots": len(plot_files), "files": []}
     if not plot_files:
-        flags.append("keine Plots")
+        flags.append("no plots")
         return 0.0, m
     try:
         import matplotlib.image as mpimg
@@ -489,12 +491,12 @@ def _eval_plots(plot_files, code, flags):
         m["files"].append(info)
     m["valid_ratio"] = round(valid / len(plot_files), 3)
     if valid < len(plot_files):
-        flags.append("Plot-Datei leer oder unlesbar")
+        flags.append("plot file empty or unreadable")
     n_save = max(len(re.findall(r"savefig\(", code or "")), 1)
     n_labels = len(re.findall(r"\.(xlabel|ylabel|title|set_xlabel|set_ylabel|set_title)\(", code or ""))
     m["label_ratio"] = round(min(n_labels / (3 * n_save), 1.0), 3)
     if m["label_ratio"] < 1:
-        flags.append("Plots nicht vollstaendig beschriftet")
+        flags.append("plots not fully labelled")
     if re.search(r"ylim\(\s*0\s*,\s*100\s*\)", code or ""):
         flags.append("Prozent-Achse 0-100 (Unterschiede unsichtbar)")
         m["label_ratio"] = round(m["label_ratio"] * 0.5, 3)

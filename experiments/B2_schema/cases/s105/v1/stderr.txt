@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/code/code.py", line 44, in <module>
+    busiest_month_str = f"{busiest_month['year']}-{str(int(busiest_month['month'].split('-')[1])).zfill(2)}"
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Period' object has no attribute 'split'

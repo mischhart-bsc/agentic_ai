@@ -271,3 +271,41 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
   changes, so the manifests of new experiments record the new version.
 - **Still open:** `n_strong` and `pct_strong_per_year` are wrong in every run. Without a definition the model counts B4+/C+ as strong
   (about 25,000 instead of 1,637 M/X flares). Decide: keep the definition open (an assumption the model must make) or state it.
+
+
+## 2026-11-08 - Review of baseline and metrics (branch feature/improve_model_setup)
+
+### 22. Findings
+- **"strong" was never defined in the prompt**, but the ground truth counts `goes_estimated_mean_class` M/X. `n_strong` and
+  `pct_strong_per_year` were therefore wrong in every run (entry 21, "still open"). The checker also treats the other GOES column as
+  "WRONG", while the `method` check allows both: the two disagree.
+- **Noise was never measured.** There is no repeat of an unchanged experiment. E03/E06, E04/E07 and E05/E08 differ in prompts and
+  feedback texts (other git commits), so they are no replicates either. With 5 seeds and sd up to 2.4 funnel stages, differences of
+  about 1 stage between reflection levels cannot be told from noise.
+- **Format and analysis are mixed.** Four of the eight funnel stages check JSON format and keys; entry 21 shows that format slips,
+  not the analysis, ended many runs. `strong_share_increasing` is `False` in the ground truth, so a constant "False" earns a point.
+- **PERFORMANCE_LOG** shows the same "What changed" text for E09 (blind) and E10 (schema); E05 is still `running` in its manifest.
+
+### 23. Decisions
+- Work in small versions, each with its own entry in `docs/changes.md` (hypothesis, expected effect, measured effect).
+- C01 (the prompt defines "strong") and C02 (the `report()` helper) are implemented but not yet justified by an observed error in the new series.
+  They wait in `docs/changes.md` as candidates.
+- C03 (atomic claims) and C04 (difficulty ladder) are planned. Reasoning: claims should define their own terms, and results should be
+  recorded by a runner-provided `report()` instead of model-written JSON; both are built on our own experiment structure.
+
+### 24. Clean-up on the branch
+- Step-1 prompts reduced to two: `prompts/step1_baseline_v3.txt` (old baseline, comparison point) and `prompts/step1_baseline.txt`
+  (current: defines "strong", the model calls `report()`). Removed: the earlier files v2, v4, v5 (v1 was removed here and restored in entry 25 as the starting point of the new series); every old experiment keeps its own copy
+  of the prompt it used in `experiments/<id>/prompts/`.
+- Removed: `peek.py`, `evaluation_summary.csv`, `tools/migrate_runs.py` and the old `runs/` folder (all 47 runs were migrated to
+  `experiments/_legacy`, see entry 14). `runs/` is now git-ignored; only `smoke_test.py` writes there.
+
+### 25. Restart on 9 Nov 2026: the series S0-B3
+- **Problem.** The first plan started the new series with options (schema, shims, notebook prompt) that had been added in the old series.
+  Nobody could show in the new series why each option is needed.
+- **Decision.** Start again from the smoke test (S0: 33,076 rows, 40 columns). B1 runs the original prompt (`prompts/step1_baseline_v1.txt`, identical
+  to E01) without schema and without shims. B2 adds `--schema`, B3 adds `--shims`. Every option is added only after the previous run showed
+  the error it fixes. One run (5 seeds) per step: the jumps between steps are larger than the noise inside a run; separate noise
+  runs are planned only for fine-tuning after the reflection steps. The old series E01-E13 stays untouched as history (the "cut").
+- **Replaces** the earlier plan R1 (repeat the old baseline twice).
+- **Where.** Run log with commands, expected and observed errors: `docs/changes.md`.

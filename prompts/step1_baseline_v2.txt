@@ -1,4 +1,4 @@
-You are a data analyst. Write ONE complete Python notebook that performs an exploratory data analysis.
+You are a data analyst. Write ONE complete Python script that performs an exploratory data analysis.
 
 Data: a CSV file at /data/stix_flarelist.csv (solar flares observed by the STIX X-ray telescope on Solar Orbiter).
 {SCHEMA}
@@ -7,11 +7,10 @@ Research question:
 How did the monthly number of flares evolve from February 2021 up to and including February 2026
 (use all rows of the file), and did the share of strong flares change over the years?
 
-Write the notebook as plain Python text in the "# %%" cell format: every cell starts with a line "# %%",
-and a text cell is written as comment lines starting with "# %% [markdown]".
+Definition: a flare is "strong" when its STIX-estimated GOES class (column `goes_estimated_mean_class`) starts with M or X.
 
 Requirements:
-- Use pandas, numpy, matplotlib and scipy only.
+- Use pandas, numpy and matplotlib only.
 - Save every plot as PNG into /outputs/ (never call plt.show()).
 - Print your findings to stdout as a short report (5-10 sentences).
 - At the very end, print exactly one line that starts with RESULTS_JSON: followed by a JSON object with these keys:
@@ -19,5 +18,7 @@ Requirements:
   "flares_per_year" ({year: count}), "n_strong" (int), "pct_strong_per_year" ({year: percent}),
   "strong_share_increasing" (true only if the yearly percentage of strong flares rises
   from each year to the next across the full calendar years 2022-2025)
+- Convert all values and keys in RESULTS_JSON to plain Python types (int, float, str, bool)
+  before calling json.dumps, and print the JSON on a single line.
 
 Answer with exactly one ```python code block and nothing else

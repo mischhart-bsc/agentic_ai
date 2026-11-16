@@ -1,0 +1,4 @@
+  File "/code/code.py", line 45
+    else:
+    ^^^^
+SyntaxError: invalid syntax

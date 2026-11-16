@@ -1,0 +1,4 @@
+  File "/code/code.py", line 59
+    pct_strong_per_year = yearly_summary.set_index('year')['pct_str
+                                                           ^
+SyntaxError: unterminated string literal (detected at line 59)

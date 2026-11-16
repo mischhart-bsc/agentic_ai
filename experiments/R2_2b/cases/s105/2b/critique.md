@@ -1,0 +1,10 @@
+- The code fails to parse the date '2026-02-29' because February does not have 29 days in any year, leading to a `DateParseError`. This causes the entire filtering step to crash, making the script fail immediately.
+- The requirement specifies to analyze flares from "February 2021 up to and including February 2026", which includes February 2026. However, the end date '2026-02-29' is invalid and cannot be parsed, violating both the correctness and robustness of the code.
+- The script does not handle edge cases in date parsing (e.g., invalid days in months) and lacks validation of date inputs, which is critical when working with real-world date strings.
+- No output is printed to stdout, violating the requirement to print a short report of findings.
+- No plots are saved, despite the requirement to save every plot as a PNG into /outputs/.
+- There is no explicit handling of missing or invalid data in the `start_UTC` column, and the code assumes all entries are valid dates without error checking.
+- The `pct_strong_per_year` and `flares_per_year` dictionaries are built only from valid years, but the failure means these values are undefined or uncomputed.
+- The final `RESULTS_JSON` line is never printed due to the crash, violating the output specification.
+- The code does not account for the fact that the data may have a limited range of valid dates, and it does not handle leap years or month boundaries correctly.
+- The logic for determining "strong share increasing" is never evaluated because the main data processing fails entirely.

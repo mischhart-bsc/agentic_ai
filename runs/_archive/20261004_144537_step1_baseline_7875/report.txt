@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/code/step_002.py", line 19, in <module>
-    raise ValueError("No date column found in the dataset.")
-ValueError: No date column found in the dataset.
