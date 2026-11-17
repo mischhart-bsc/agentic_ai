@@ -1,0 +1,9 @@
+- The code attempts to create an invalid date (`2026-02-29`) because February does not have 29 days in a non-leap year, and 2026 is not a leap year. This causes a `ValueError` during parsing, leading to a runtime error and preventing execution.
+- The logic for filtering the data by date is flawed: using `pd.Timestamp('2026-02-29')` as an end date is invalid and will always raise a parsing error, making the entire pipeline fail.
+- The code does not handle date parsing robustly—no validation or fallback is provided for invalid dates, and it does not account for leap years or month-length constraints.
+- The variable `filtered_data` is created using a date filter that fails at runtime, so no data is actually processed, and all derived metrics (like monthly counts or strong flare shares) are based on zero or invalid data.
+- The final summary and JSON output are not generated because the code fails before reaching those sections.
+- The code does not meet the requirement to "use all rows of the file" because the filtering step is invalid and causes the script to terminate early.
+- The research question about the monthly evolution of flares and the share of strong flares cannot be addressed due to a failed execution.
+- There is no error handling or try-except block to catch or manage invalid date parsing, which makes the code brittle and unreliable.
+- The code fails to produce any saved plots or JSON outputs, violating the requirement to save all plots and results in the correct format.

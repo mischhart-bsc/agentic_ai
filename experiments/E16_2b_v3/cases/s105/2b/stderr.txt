@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 102, in <module>
+    ax.set_xticklabels(month_labels, rotation=45)
+  File "/usr/local/lib/python3.11/site-packages/matplotlib/axes/_base.py", line 75, in wrapper
+    return get_method(self)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/matplotlib/axis.py", line 2260, in set_ticklabels
+    raise ValueError(
+ValueError: The number of FixedLocator locations (12), usually from a call to set_ticks, does not match the number of labels (60).

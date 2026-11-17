@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 290, in run_path
+  File "<frozen runpy>", line 259, in _get_code_from_file
+  File "/code/code.py", line 78
+    yearly_strong_share = yearly_strong_share[yearly_strong_share['year'].between(2022, 025)]
+                                                                                        ^
+SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers

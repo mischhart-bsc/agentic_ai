@@ -1,0 +1,31 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 51, in <module>
+    monthly_counts['month_label'] = monthly_counts['year'].astype(str) + '-' + monthly_counts['month'].astype(str).apply(lambda x: f"{x:02d}")
+                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/series.py", line 5575, in apply
+    ).apply()
+      ^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/apply.py", line 1749, in apply
+    return self.apply_standard()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/apply.py", line 1807, in apply_standard
+    mapped = obj._map_values(mapper=curried)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/base.py", line 1076, in _map_values
+    return arr.map(mapper, na_action=na_action)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/base.py", line 3006, in map
+    result = map_array(self, mapper, na_action=na_action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/algorithms.py", line 2007, in map_array
+    return lib.map_infer(values, mapper)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/lib.pyx", line 3390, in pandas._libs.lib.map_infer
+  File "/code/code.py", line 51, in <lambda>
+    monthly_counts['month_label'] = monthly_counts['year'].astype(str) + '-' + monthly_counts['month'].astype(str).apply(lambda x: f"{x:02d}")
+                                                                                                                                   ^^^^^^^^^^
+ValueError: Unknown format code 'd' for object of type 'str'

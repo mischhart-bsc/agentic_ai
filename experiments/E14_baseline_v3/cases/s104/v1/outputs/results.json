@@ -1,0 +1,21 @@
+{
+    "n_months": 61,
+    "busiest_month": "2024-09",
+    "busiest_month_count": 1724,
+    "flares_per_year": {
+        "2021": 694,
+        "2022": 4787,
+        "2023": 6469,
+        "2024": 12330,
+        "2025": 7662,
+        "2026": 1134
+    },
+    "n_strong": 31248,
+    "pct_strong_per_year": {
+        "2022": 100.0,
+        "2023": 100.0,
+        "2024": 100.0,
+        "2025": 100.0
+    },
+    "strong_share_increasing": false
+}

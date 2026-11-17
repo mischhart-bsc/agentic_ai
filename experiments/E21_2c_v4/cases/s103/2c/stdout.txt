@@ -1,0 +1,13 @@
+
+The number of solar flares per month shows a steady trend from February 2021 to February 2026, with the busiest month being 09 in 2024-9, recording 1724 flares.
+
+The total number of flares observed across the period is 33076, with an average of 5512.7 flares per month.
+
+The share of strong flares (M/X class) in 2022 was 5.2%, in 2023 was 5.4%, in 2024 was 5.2%, and in 2025 was 3.9%.
+
+The total number of strong flares across the entire period is 1637.
+
+The share of strong flares did not increase from each year to the next (2022 → 2025), so the flag 'strong_share_increasing' is False.
+
+This indicates that the occurrence of powerful solar flares did not show a growing trend over time; instead, the share remained relatively stable or decreased slightly, suggesting no consistent increase in powerful flares during this period.
+
