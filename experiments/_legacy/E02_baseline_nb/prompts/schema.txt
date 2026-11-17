@@ -1,0 +1,42 @@
+File: /data/stix_flarelist.csv  (33076 rows, 40 columns)
+column | dtype | example values
+start_UTC | str | 2021-02-14T01:41:06.670, 2021-02-14T13:21:34.741
+end_UTC | str | 2021-02-14T01:49:14.671, 2021-02-14T13:33:02.742
+peak_UTC | str | 2021-02-14T01:44:14.670, 2021-02-14T13:24:54.741
+4-10 keV | int64 | 1983, 1855
+10-15 keV | int64 | 463, 271
+15-25 keV | int64 | 183, 151
+25-50 keV | int64 | 927, 927
+50-84 keV | int64 | 543, 543
+bkg 4-10 keV | float64 | 271, 271
+bkg 10-15 keV | float64 | 49, 49
+bkg 15-25 keV | float64 | 67, 67
+bkg 25-50 keV | float64 | 863, 863
+bkg 50-84 keV | float64 | 463, 463
+bkg_baseline_4-10 keV | float64 | 251.2, 250.6
+hpc_x_solo | float64 | 108.9, -146.5
+hpc_y_solo | float64 | 457.9, 473.5
+hpc_x_earth | float64 | -151.7, -150.8
+hpc_y_earth | float64 | -279.8, -260.5
+visible_from_earth | object | False, False
+hgs_lon | float64 | -106, -116.1
+hgs_lat | float64 | 20.02, 20.82
+hgc_lon | float64 | 245, 222.1
+hgc_lat | float64 | 20.02, 20.82
+solo_position_lat | float64 | 1.395, 1.433
+solo_position_lon | float64 | -160, -159
+solo_position_AU_distance | float64 | 0.4971, 0.4978
+EAR_TDEL | float64 | 730.2, 729.5
+GOES_class_time_of_flare | str | A, A
+GOES_flux_time_of_flare | float64 | 1.557e-08, 1.569e-08
+att_in | bool | False, False
+flare_id | int64 | 2102140144, 2102141324
+sidelobes_ratio | float64 | 0.7711, 0.7547
+goes_estimated_min_class | str | B4, B4
+goes_estimated_max_class | str | B8, B8
+goes_estimated_mean_class | str | B6, B6
+goes_estimated_min_flux | float64 | 4e-07, 4e-07
+goes_estimated_max_flux | float64 | 8e-07, 8e-07
+goes_estimated_mean_flux | float64 | 6e-07, 6e-07
+error_with_imaging | bool | True, True
+cpd_filename | str | /Users/laurahayes/flare_analys, /Users/laurahayes/flare_analys

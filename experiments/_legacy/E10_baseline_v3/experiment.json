@@ -1,0 +1,34 @@
+{
+  "id": "E10_baseline_v3",
+  "level": "baseline",
+  "base": null,
+  "change": "baseline v3: results saved to /outputs/results.json",
+  "runner_shims": true,
+  "shim_hash": "sha256:8bda74ec8201",
+  "note": "",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "data_context": "schema",
+  "model": "qwen3-4b-instruct-16k",
+  "model_digest": "8b939f12b0f9",
+  "temperature": 0.7,
+  "max_tokens": 4000,
+  "llm_max_seconds": 600,
+  "prompts": {
+    "generate": "sha256:3baa355ce380",
+    "schema": "sha256:b445db2c809c"
+  },
+  "git_commit": "a26d2d1",
+  "git_dirty": false,
+  "machine": "MacBook-Pro-von-Vanessa.local (Darwin, 8 CPUs)",
+  "ollama_url": "http://localhost:11434/v1",
+  "docker_image": "agai-sandbox",
+  "started": "2026-11-01T13:02:53",
+  "finished": "2026-11-01T13:29:39",
+  "status": "complete"
+}

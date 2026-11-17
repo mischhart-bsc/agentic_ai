@@ -20,11 +20,12 @@ from datetime import datetime
 from pathlib import Path
 
 import config
-from src.runner import SHIM
+from src.runner import REPORT_HELPER, SHIM
 
 # Conditions that must be identical when an existing experiment is resumed
-FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts", "runner_shims", "shim_hash")
-OLD_DEFAULTS = {"runner_shims": False, "shim_hash": None}      # manifests written before a key existed
+FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts", "runner_shims", "shim_hash",
+                    "report_helper", "report_helper_hash")
+OLD_DEFAULTS = {"runner_shims": False, "shim_hash": None, "report_helper": False, "report_helper_hash": None}      # manifests written before a key existed
 
 def load(exp_id, root=None):
     """Read the manifest of an existing experiment (e.g. the base of a reflection level)."""
@@ -79,15 +80,16 @@ def machine():
 
 
 class Experiment:
-    def __init__(self, exp_id, level, prompts, seeds, base=None, data_context=None, note="", change="", runner_shims=False, root=None):
+    def __init__(self, exp_id, level, prompts, seeds, base=None, data_context=None, note="", change="", runner_shims=False, report_helper=False, root=None):
         """
-        exp_id        unique name, e.g. 'E02_2a_schema'
+        exp_id        unique name, e.g. 'R1_2a'
         level         'baseline', '2a', '2b', '2c', ...
         prompts       {name: text} of every prompt this experiment uses
         seeds         list of ints, one case per seed
         base          exp_id of the experiment whose v1 this one builds on (None for a baseline)
         data_context  'blind' or 'schema'
         runner_shims  True if the code ran with SHIM loaded (display, numpy-safe json)
+        report_helper True if the code ran with REPORT_HELPER loaded (report(key, value) writes results.json)
         change        one sentence: what is different from the experiment this one is compared with (shown in PERFORMANCE_LOG.md)
         root          folder that holds the experiments (default config.EXPERIMENTS_DIR; tests use a temp dir)
         """
@@ -101,6 +103,8 @@ class Experiment:
             "change": change,
             "runner_shims": bool(runner_shims),
             "shim_hash": sha(SHIM) if runner_shims else None,
+            "report_helper": bool(report_helper),
+            "report_helper_hash": sha(REPORT_HELPER) if report_helper else None,
             "note": note,
             "seeds": list(seeds),
             "data_context": data_context,

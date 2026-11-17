@@ -12,7 +12,7 @@ import config
 from src.trace import timer
 
 # timeout = max. wait for one network step; the total limit is LLM_MAX_SECONDS below
-client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=300, max_retries=0)  # Key wird ignoriert
+client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=300, max_retries=0)  # key is ignored
 
 
 def chat(run, messages, label="llm_call", max_tokens=None, **kw):

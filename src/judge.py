@@ -1,15 +1,15 @@
-"""LLM-as-a-Judge: subjektive Bewertung des Reports (Geruest, standardmaessig AUS).
+"""LLM-as-a-Judge: subjective rating of the report (scaffold, off by default).
 
-Ablauf laut Checkliste (Evaluation framework):
-  1. Rubrik unten mit der Gruppe abstimmen (Kriterien, Skala, Bedeutung jeder Stufe).
-  2. 5-10 Reports selbst bewerten:  python analyze.py --exp <id> --human-template
-     -> human_scores.csv ausfuellen.
-  3. Judge auf dieselben Reports:   python analyze.py --exp <id> --judge
-  4. Uebereinstimmung messen:       python analyze.py --agreement
-  5. Prompt anpassen, bis Judge und Mensch ausreichend uebereinstimmen.
+Steps, following the checklist (evaluation framework):
+  1. Agree on the rubric below with the group (criteria, scale, meaning of each level).
+  2. Rate 5-10 reports yourself:  python analyze.py --exp <id> --human-template
+     -> fill in human_scores.csv.
+  3. Run the judge on the same reports:   python analyze.py --exp <id> --judge
+  4. Measure the agreement:               python analyze.py --agreement
+  5. Adjust the prompt until judge and human agree well enough.
 
-Plots bewertet der Judge (noch) nicht: qwen3 kann keine Bilder lesen. Dafuer braeuchte es
-ein Vision-Modell in Ollama (z.B. qwen2.5vl oder gemma3) -> judge_plots() ist ein Platzhalter.
+The judge does not rate plots (yet): qwen3 cannot read images. That would need a vision model
+in Ollama (e.g. qwen2.5vl or gemma3) -> judge_plots() is a placeholder.
 """
 import json
 import re
@@ -22,8 +22,8 @@ from src.checker import GT
 JUDGE_MODEL = getattr(config, "JUDGE_MODEL", config.MODEL)
 JUDGE_TEMPERATURE = 0.0
 
-# ---------------------------------------------------------------- Rubrik
-# Skala 1-5 fuer alle Kriterien. Die Beschreibungen sind Teil des Prompts.
+# ---------------------------------------------------------------- Rubric
+# Scale 1-5 for all criteria. The descriptions are part of the prompt.
 RUBRIC = {
     "answers_question": {
         "question": "Does the report answer BOTH parts of the research question "
@@ -58,7 +58,7 @@ CRITERIA = list(RUBRIC)
 
 
 def reference_facts():
-    """Kurze Fakten fuer den Judge (aus ground_truth.json)."""
+    """Short reference facts for the judge (from ground_truth.json)."""
     return (
         f"- {GT['n_months']} calendar months, Feb 2021 - Feb 2026 (2021 and 2026 are partial years)\n"
         f"- busiest month: {GT['busiest_month']} with {GT['busiest_month_count']} flares\n"
@@ -112,8 +112,8 @@ def parse_scores(text, criteria=CRITERIA):
 
 
 def judge_report(run_dir, report):
-    """Bewertet einen Report mit dem LLM. Ergebnis -> runs/<id>/judge.json (+ judge.jsonl als Log)."""
-    from openai import OpenAI   # erst hier importieren, damit der Rest ohne Ollama funktioniert
+    """Rate a report with the LLM. Result -> <run_dir>/judge.json (+ judge.jsonl as log)."""
+    from openai import OpenAI   # import here so the rest works without Ollama
 
     run_dir = Path(run_dir)
     if not report.strip():
@@ -140,13 +140,13 @@ def judge_report(run_dir, report):
 
 
 def judge_plots(run_dir):
-    """Platzhalter: Plot-Bewertung braucht ein Vision-Modell (z.B. ollama pull qwen2.5vl)."""
-    raise NotImplementedError("Plot-Judge noch nicht aktiv - braucht ein Vision-Modell.")
+    """Placeholder: rating plots needs a vision model (e.g. ollama pull qwen2.5vl)."""
+    raise NotImplementedError("Plot judge not active yet - needs a vision model.")
 
 
-# ---------------------------------------------------------------- Mensch vs. Judge
+# ---------------------------------------------------------------- Human vs. judge
 def agreement(human_csv, runs_dir):
-    """Vergleicht human_scores.csv mit judge.json. Gibt pro Kriterium MAE und Anteil |diff|<=1 zurueck."""
+    """Compare human_scores.csv with judge.json. Returns MAE and the share of |diff|<=1 per criterion."""
     import csv
     rows = list(csv.DictReader(open(human_csv, encoding="utf-8")))
     per = {c: [] for c in CRITERIA}

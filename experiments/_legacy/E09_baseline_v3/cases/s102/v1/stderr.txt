@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 290, in run_path
+  File "<frozen runpy>", line 259, in _get_code_from_file
+  File "/code/code.py", line 40
+    flare_data['month'] = flare tqdm(flare_data['date'].dt.month)
+                                ^^^^
+SyntaxError: invalid syntax

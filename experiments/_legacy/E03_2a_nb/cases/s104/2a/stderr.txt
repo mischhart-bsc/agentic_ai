@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "pandas/_libs/tslibs/parsing.pyx", line 670, in pandas._libs.tslibs.parsing.dateutil_parse
+ValueError: day is out of range for month
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 49, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 27, in <module>
+    end_date = pd.to_datetime('2026-02-29')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 1074, in to_datetime
+    result = convert_listlike(np.array([arg]), format)[0]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 437, in _convert_listlike_datetimes
+    result, tz_parsed = objects_to_datetime64(
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/core/arrays/datetimes.py", line 2623, in objects_to_datetime64
+    result, tz_parsed = tslib.array_to_datetime(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/tslib.pyx", line 259, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 473, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 430, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslibs/conversion.pyx", line 658, in pandas._libs.tslibs.conversion.convert_str_to_tsobject
+  File "pandas/_libs/tslibs/parsing.pyx", line 321, in pandas._libs.tslibs.parsing.parse_datetime_string
+  File "pandas/_libs/tslibs/parsing.pyx", line 674, in pandas._libs.tslibs.parsing.dateutil_parse
+pandas._libs.tslibs.parsing.DateParseError: day is out of range for month: 2026-02-29

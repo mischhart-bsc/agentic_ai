@@ -1,0 +1,10 @@
+- The script fails during plotting due to a type error: `Period` objects are passed to `ax.plot`, but matplotlib expects numeric datetime values. The line `monthly_count_plot['date'] = pd.to_datetime(...)` creates a Period, which is incompatible with matplotlib's plotting function.
+- The code incorrectly assumes that `monthly_count_plot['date']` is already a datetime, but the `to_period('M')` operation results in a Period object, not a datetime, causing the error when `ax.plot` tries to access `.get_path()` via `x`.
+- The `busiest_month` and `busiest_month_count` are computed from a groupby that may not have a valid maximum due to potential missing data or incorrect aggregation.
+- The strong flare classification logic (`goes_estimated_min_class`) is applied but may not correctly identify "strong" flares based on the actual GOES class (e.g., "B4", "C", "M", "X"), and the logic lacks validation for missing or malformed values.
+- The `pct_strong_per_year` is calculated only for years 2022–2025, but the data may not contain flares from all years in that range, leading to missing or incorrect values.
+- The `strong_share_increasing` flag compares only a subset of years (2022–2025), but the data may lack sufficient years or contain gaps, making the trend check invalid or incomplete.
+- The final `RESULTS_JSON` is constructed with values that are not validated against the actual data, and since no plots or output were saved, no artifacts exist to verify correctness.
+- The script does not print any findings to stdout, violating the requirement to "print your findings to stdout as a short report (5–10 sentences)".
+- The script fails to save any plots, violating the requirement to "save every plot as PNG into /outputs/".
+- The independent check confirms that all requested values are missing, meaning the script did not produce valid or correct results.

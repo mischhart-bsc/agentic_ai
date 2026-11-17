@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/code/step_002.py", line 20, in <module>
-    raise ValueError("Could not parse date column from CSV")
-ValueError: Could not parse date column from CSV

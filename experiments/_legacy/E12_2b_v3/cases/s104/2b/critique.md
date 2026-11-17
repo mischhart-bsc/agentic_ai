@@ -1,0 +1,12 @@
+- The code fails on line 47 due to an incorrect assumption that `data['start_UTC']` is a datetime column, but it was originally loaded as a string (str dtype) and not converted to datetime properly. The error "Can only use .dt accessor with datetimelike values" confirms this — pandas cannot apply `.dt.year` to a string column.
+- The conversion of `start_UTC` from string to datetime was attempted but not fully implemented or validated; the initial line `pd.to_datetime(...)` is present but may have been skipped or failed silently due to malformed input, and the resulting column is not properly verified.
+- The variable `yearly_flares` is created from `data.groupby(data['start_UTC'].dt.year)`, which will fail because `start_UTC` is not a datetime object, and the `.dt.year` access is invalid.
+- The code does not verify whether the datetime conversion succeeded — it assumes success and proceeds, leading to runtime errors.
+- The monthly and yearly aggregations rely on `year_month` and `start_UTC`, but `year_month` is built on a column that may not exist or be properly formed due to the failed datetime conversion.
+- The strong flare definition uses `goes_estimated_max_flux`, which is a float64 column — this is valid, but the code does not validate that the data contains valid non-null values for this field.
+- The final results and JSON output are never produced because the code crashes before reaching the saving step.
+- The plots are not saved because the execution fails before the plotting cells run.
+- The summary text is present but is not generated from computed variables — it is hard-coded and does not reflect actual data results.
+- The requirement to "show every plot and save it" is not met due to the failure.
+- The requirement to "end with a summary cell that prints your findings" is not fulfilled because the code fails and no output is generated.
+- The requirement to "save your results with json.dump" is not fulfilled due to the crash.

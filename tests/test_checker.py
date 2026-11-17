@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.checker import GT, check, extract_results, score, strict_json_ok  # noqa: E402
+from src.checker import GT, check, credit, extract_results, score, score_partial, strict_json_ok  # noqa: E402
 
 
 def perfect():
@@ -34,6 +34,20 @@ def wrong():
         "pct_strong_per_year": {"2021": 50.0},
         "strong_share_increasing": not GT["strong_share_increasing_full_years"],
     }
+
+
+def test_partial_credit():
+    assert score_partial(credit(perfect())) == 1.0
+    assert score_partial(credit(None)) == 0.0
+    # 4 of 6 years right (like B4 s101: 2021 and 2026 missing): strict = wrong, partial = 4/6
+    p = perfect()
+    p["flares_per_year"] = {k: v for k, v in p["flares_per_year"].items() if k not in ("2021", "2026")}
+    assert check(p)["flares_per_year"] is False
+    assert credit(p)["flares_per_year"] == round(4 / 6, 3)
+    # a wrong scalar earns nothing, strict score is unchanged
+    p = perfect()
+    p["n_months"] = 60
+    assert credit(p)["n_months"] == 0.0 and score(check(p)) < 1.0
 
 
 def test_checker():
@@ -76,4 +90,5 @@ def test_checker():
 
 if __name__ == "__main__":
     test_checker()
+    test_partial_credit()
     print("OK - checker calibration passed")

@@ -1,0 +1,11 @@
+- The code fails on line 30 due to a malformed string formatting operation: `f"{x:02d}"` is applied to a pandas Series of integers, but `x` is already a string in the context of `.apply(lambda x: f"{x:02d}")`, which triggers a ValueError because `x` is a string, not an integer, and Python cannot format a string with the 'd' format specifier.
+- The line `monthly_flares['month_year'] = monthly_flares['year'].astype(str) + '-' + monthly_flares['month'].astype(str).apply(lambda x: f"{x:02d}")` attempts to format a string with `f"{x:02d}"`, which is invalid when `x` is a string (e.g., "1"), as `str.format('d')` is not allowed on strings.
+- The error occurs during the creation of `month_year` labels, but this step is not needed—there is no requirement to create a column for month-year labels, and the plotting can proceed without it.
+- The code does not print any findings to stdout, violating the requirement to "print your findings to stdout as a short report".
+- The code does not save any plots (0 PNG files were saved), violating the requirement to "Save every plot as PNG into /outputs/".
+- The final `RESULTS_JSON` line is not printed, violating the requirement to "print exactly one line that starts with RESULTS_JSON".
+- The logic for detecting whether the strong flare share increases is flawed: it only checks 2022–2025, but the years 2022–2025 may not be fully represented in the data, and the code assumes a sequence that may not exist.
+- The variable `total_flares` is computed correctly, but `flares_per_year` is built from `df.groupby('year').size().to_dict()`, which may not cover all years in the range 2021–2026, and the output may be incomplete.
+- The plot code creates a bar chart, but the x-axis labels are not properly formatted, and the plot fails to render due to the earlier error, so no plot is saved.
+- The script does not handle missing or invalid data in the `start_UTC` or `goes_estimated_mean_class` columns, which may cause errors or incorrect analysis if the data contains missing values.
+- The code does not convert any values or keys in the final JSON to plain Python types before `json.dumps`, which is a requirement, though this is a minor issue due to the failure to execute.

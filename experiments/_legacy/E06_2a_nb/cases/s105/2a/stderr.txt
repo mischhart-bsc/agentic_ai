@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<string>", line 49, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 55, in <module>
+    pct_per_year_2022_to_2025[year] = pct_per_year_2025
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'pct_per_year_2022_to_2025' is not defined. Did you mean: 'pct_per_year_2022_2025'?

@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>B1_original_prompt</title>
+<style>body{font-family:sans-serif;margin:24px} table{border-collapse:collapse;margin:12px 0}
+td,th{border:1px solid #ccc;padding:6px 10px;text-align:center;vertical-align:top}
+a{color:#222} .legend span{padding:2px 8px;margin-right:6px}</style></head><body>
+<h2>Reflection levels on B1_original_prompt</h2><p>model qwen3-4b-instruct-16k · T=0.7 · data context blind · commit def6ccd (dirty) · MacBook-Pro-von-Vanessa.local (Darwin, 8 CPUs)</p>
+<p class="legend"><span style="background:#b7e1cd">all facts right</span><span style="background:#d9ead3">≥50 % facts</span>
+<span style="background:#fce8b2">ran, &lt;50 % facts</span><span style="background:#f4c7c3">crashed</span>
+<span style="background:#dddddd">infrastructure failure</span></p>
+<table><tr><th>seed</th><th>baseline<br><small>B1_original_prompt</small></th></tr><tr><th>s101</th><td style="background:#f4c7c3"><a href="../experiments/B1_original_prompt/cases/s101/v1/code.py">hallucinated_column</a><br><b>0%</b> facts · 0 plots<br><small>1,902 tok</small></td></tr><tr><th>s102</th><td style="background:#f4c7c3"><a href="../experiments/B1_original_prompt/cases/s102/v1/code.py">other:ValueError</a><br><b>0%</b> facts · 0 plots<br><small>1,937 tok</small></td></tr><tr><th>s103</th><td style="background:#f4c7c3"><a href="../experiments/B1_original_prompt/cases/s103/v1/code.py">date_parse</a><br><b>0%</b> facts · 0 plots<br><small>1,654 tok</small></td></tr><tr><th>s104</th><td style="background:#f4c7c3"><a href="../experiments/B1_original_prompt/cases/s104/v1/code.py">other:SyntaxError</a><br><b>0%</b> facts · 0 plots<br><small>2,140 tok</small></td></tr><tr><th>s105</th><td style="background:#f4c7c3"><a href="../experiments/B1_original_prompt/cases/s105/v1/code.py">other:SyntaxError</a><br><b>0%</b> facts · 0 plots<br><small>927 tok</small></td></tr></table>
+<h3>Per level</h3><table><tr><th></th><th>baseline</th></tr><tr><th>ran</th><td>0/5</td></tr><tr><th>funnel depth</th><td>2.0/8</td></tr><tr><th>mean facts</th><td>0%</td></tr><tr><th>tokens / seed</th><td>1,712</td></tr><tr><th>LLM s / seed</th><td>166</td></tr><tr><th>vs. v1</th><td></td></tr><tr><th>errors</th><td>other:SyntaxError: 2<br>hallucinated_column: 1<br>other:ValueError: 1<br>date_parse: 1</td></tr></table>
+<p><small>Every level starts from the same frozen v1 of the baseline. Transitions compare a level with v1 of the
+same seed; infrastructure failures are excluded. Click a cell to open its code.</small></p></body></html>

@@ -1,0 +1,9 @@
+- The code fails during execution due to an incorrect use of `pd.Categorical` on a column that is not of category dtype, specifically when calling `monthly_data['month_name'].cat.categories`. This raises an `AttributeError` because the column is not a categorical type, violating the requirement that the code must run without errors in a sandbox environment.
+- The `monthly_data['month_name']` is constructed from strings (e.g., "2022-01"), but `pd.Categorical` is applied without ensuring the column is categorical, which is invalid and causes a runtime error.
+- The value for "busiest_month_count" (3450) is not derived from actual data; the code does not compute the actual count for the month with the highest number of flares, and the assignment is arbitrary and unverified.
+- The "flares_per_year" and "pct_strong_per_year" dictionaries are populated from aggregated data, but the values are not calculated correctly—data is not filtered or grouped properly to yield accurate yearly totals and strong flare shares.
+- The strong share increasing flag is computed only over years 2022–2025, but the logic is flawed: it compares only the values in the dictionary, without validating that the data actually exists for each year and without filtering the original dataset by year.
+- No plots are saved because the code fails before reaching the plotting section, despite the requirement to save every plot as a PNG into `/outputs/`.
+- The final `RESULTS_JSON` output contains fabricated or unverified values (e.g., 3450 flares for February 2021), which are not derived from actual data and would be incorrect.
+- The code does not handle missing years or missing data properly; for example, years with no flares are not accounted for, and the analysis assumes all years from 2021–2026 have data.
+- The entire analysis would not run without errors in a sandbox due to the invalid categorical operation and missing data validation steps.

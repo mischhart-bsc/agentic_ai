@@ -1,0 +1,23 @@
+- The research question asks for the monthly number of flares from February 2021 to February 2026, but the data only includes a column "start_UTC" — the analysis incorrectly assumes a full 60-month span (2021–2026) and uses all rows, which may include flares outside the requested period.  
+- The script defines "strong flares" as GOES class B4 or higher, but the "goes_estimated_max_class" column contains values like "B4", "B8", "B6", and "C", etc. — the logic correctly identifies B4+ as strong, but the class labels are not clearly defined, and the categorization may be inconsistent.  
+- The script calculates "strong share per year" using a ratio (is_strong sum / total flares), but the "is_strong" column is built via `str.contains('B4|C|M|X')`, which may misclassify some B-class flares (e.g., B4 is strong, but B3 might not be) — however, since the data only contains B4, B8, B6, and no C/M/X, it may actually be overestimating strong flares.  
+- The busiest month is identified as "2021-02" with count 3023, but this value is not derived from the actual data — there is no intermediate step showing how this count is computed, and the value 3023 is arbitrary and likely incorrect.  
+- The flares_per_year dictionary includes 2021, but the research question only asks for 2022–2025; however, the script includes 2021 in the output, which is outside the scope of the question.  
+- The variable "strong_share_increasing" is computed only over years 2022–2025, which is correct, but the script does not verify that the data has flares in all years — if 2022–2025 have zero flares, the percentage would be zero or invalid.  
+- The script does not validate that the "goes_estimated_max_class" column is not missing or has invalid values — it assumes all entries are valid, which could introduce bias.  
+- The plot labels for strong flares use "Share of Strong Flares" with a percentage, but the actual values are not percentages — they are ratios, so the label should be "Share of Strong Flares (ratio)" or the values should be formatted correctly.  
+- The script does not filter the data to only include flares from February 2021 to February 2026 — it uses all rows, which violates the research question's time constraint.  
+- The final RESULTS_JSON includes flares_per_year with 2021, which is outside the requested period (2022–2025), and the report references 2021 as a "busiest month" without justification.  
+- The strong share increasing is evaluated only for 2022–2025, which is correct, but the values are not derived from actual data counts — they are computed from a subset, and the values in the output (e.g., 32.0, 38.0) are not backed by the actual data distribution.  
+- The script does not check for data completeness or missing values in key columns, such as "goes_estimated_max_class", which could lead to incorrect strong flare classifications.  
+- The "n_strong" value is computed as the sum of is_strong, but it does not specify that this is only for the period 2021–2026 — it uses the full dataset, violating the time constraint.  
+- The script incorrectly interprets "strong share" as a percentage of flares per year, but the data may not have enough observations per year to support meaningful percentages.  
+- The script saves plots but does not ensure that the file paths are correct or that the output directory is accessible.  
+- The final RESULTS_JSON includes a key "n_months" of 60, which is correct (60 months from Feb 2021 to Feb 2026), but it is not derived from actual months in the data — it assumes 60 months without checking the actual data range.  
+- The analysis fails to verify whether the data actually spans from February 2021 to February 2026 — if the data starts earlier or ends later, the result would be invalid.  
+- The script does not validate that the "year" column is correctly extracted from the start_UTC — it assumes the format is consistent, but if the data has malformed timestamps, this would break.  
+- The final report contains statements like "increasing from 32% to 48%" without showing the actual data distribution or statistical significance.  
+- The script does not perform any statistical validation (e.g., significance testing) of the trend in strong flare share — it only checks whether the values are increasing, which may not reflect a real trend.  
+- The strong share increasing is declared True only if each year's percentage is greater than the previous — this is correct, but it does not account for sampling variability or noise in the data.  
+
+Overall, the script fails to meet the core requirements of time-constrained analysis and accurate data filtering, and its results are not derived from a properly scoped subset of the data.

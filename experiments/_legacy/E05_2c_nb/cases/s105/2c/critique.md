@@ -1,0 +1,13 @@
+- The script fails during execution due to an incorrect use of `pd.Categorical` on a column that is not of category dtype, triggering an AttributeError.  
+- The code attempts to assign a categorical dtype to `month_name` using `.cat.categories`, which is only valid for columns already of category type — this operation is invalid and will raise an error.  
+- The script does not handle missing data or edge cases (e.g., empty months) correctly, risking runtime errors or incorrect aggregations.  
+- The calculation of "busiest_month_count" is based on an unverified value (3450) with no direct derivation from the data — this number is made up and not computed from the actual dataset.  
+- The strong flare share is computed per year but incorrectly assumes a value for 2021 (32.1%) and uses only 2022–2025, yet the data does not support such a specific value without actual computation.  
+- The "n_strong" value (1328) is arbitrary and not derived from the actual data — it is not computed from the `is_strong` column or any aggregation.  
+- The trend flag "strong_share_increasing" is evaluated on years 2022–2025, but this is only valid if the data exists for those years — the script does not verify that the years 2022–2025 have any flares.  
+- The script fails to save any plots (0 saved), violating the requirement to save every plot as a PNG in /outputs/.  
+- No output is printed to stdout, violating the requirement to print a short report.  
+- The final RESULTS_JSON is not generated or printed, meaning the required output line is missing entirely.  
+- The script does not use any external libraries beyond the required ones (pandas, numpy, matplotlib, scipy), but it still fails due to invalid operations.  
+- The entire script is logically flawed in its data processing and lacks proper validation of inputs or data structure.  
+- The solution does not meet any of the requirements: correctness, error-free execution, output generation, or result validation.

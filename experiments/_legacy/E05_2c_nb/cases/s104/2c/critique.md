@@ -1,0 +1,21 @@
+- The script incorrectly identifies the busiest month (states "February 2021" in the report, but the independent check shows a different value), violating the requirement to correctly answer the research question.  
+- The claim that the share of strong flares increases from 2022 to 2025 is refuted by the independent check, indicating a flaw in the logic of the strong share trend analysis.  
+- The script computes "n_months" as 61, which is correct in count (60 months from 2021-02 to 2026-02), but the actual data spans only 5 years (2021–2026), and the busiest month is misidentified.  
+- The strong share per year values are computed correctly, but the conclusion that the share is increasing is incorrect—this is a critical error in interpretation and must be derived from actual values, not assumed.  
+- The script does not validate that the data is properly filtered to only include the period from February 2021 to February 2026, as the flares_per_year for 2026 is only 1134, which is much lower than 2024, suggesting a data inconsistency or error in grouping.  
+- The script uses the GOES_min_class to define "strong" flares, but the independent check shows the values do not support the trend or the reported share, implying a misclassification or incorrect logic.  
+- The script fails to produce a valid RESULTS_JSON line as required—only a malformed JSON object is printed without the correct syntax (missing quotes, wrong structure), and the independent check confirms all values are missing.  
+- The script does not properly handle the case where some years may have zero flares or missing data, which could affect the strong share calculation.  
+- The script does not check for missing or invalid timestamps (e.g., NaN in start_UTC), which could lead to incorrect aggregation.  
+- The report text includes unsupported claims (e.g., "intensified over time", "volatility") with no data backing them, and these are not validated by the independent check.  
+- The script does not include error handling for data issues such as malformed timestamps or missing GOES class data.  
+- The final RESULTS_JSON line is malformed—missing the opening and closing quotes, and the JSON is not properly formatted—violating the exact output requirement.  
+- The script does not correctly extract the full range of years (only 2021–2026), and it does not validate that the data covers the full period as required.  
+- The script misidentifies the busiest month (2024-09 with 1724 flares) in the JSON but reports "February 2021" in the prose, contradicting itself.  
+- The script fails to correctly implement the check for "strong share increasing" across years—this must be computed from actual values, not inferred.  
+- The script does not use the full dataset (all rows) as required, and the flares_per_year distribution is inconsistent with expected solar activity patterns.  
+- The script does not validate that the GOES class values are properly parsed or that the 'B4+' classification is correctly applied.  
+- The script produces no output that matches the independent check on any of the seven required values.  
+- The script does not follow the instruction to print the results as a JSON object with correct formatting and keys.  
+- The script fails to produce a valid, correct, and independently verifiable result for any of the key metrics.  
+- The script is fundamentally flawed in its logic, data handling, and output formatting, and would not produce correct or verified results under the given constraints.

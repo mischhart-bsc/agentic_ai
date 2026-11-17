@@ -272,64 +272,40 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
 - **Still open:** `n_strong` and `pct_strong_per_year` are wrong in every run. Without a definition the model counts B4+/C+ as strong
   (about 25,000 instead of 1,637 M/X flares). Decide: keep the definition open (an assumption the model must make) or state it.
 
-## 2026-11-01 – Baseline v3 rerun, baseline v4 with definitions, reflection 2a–2c (Jan)
 
-### 22. Rerun of baseline v3 and reflection on Jan's machine (E14–E17)
-Same conditions as E10–E13 (prompt v3, schema, shims, qwen3-4b-instruct-16k, T=0.7, seeds 101–105), new baseline E14 on a
-different machine (MacBook Air, 10 CPUs, commit def6ccd). Reflection levels on the frozen v1 of E14.
+## 2026-11-08 - Review of baseline and metrics (branch feature/improve_model_setup)
 
-| Level | Exp | Ran | Facts % | Report | Tokens / seed |
-|---|---|---|---|---|---|
-| baseline | E14_baseline_v3 | 2/5 | 29 | 41 | 3,153 |
-| 2a | E15_2a_v3 | 0/5 | 0 | 18 | 10,592 |
-| 2b | E16_2b_v3 | 2/5 | 26 | 41 | 10,589 |
-| 2c | E17_2c_v3 | 2/5 | 26 | 40 | 10,830 |
+### 22. Findings
+- **"strong" was never defined in the prompt**, but the ground truth counts `goes_estimated_mean_class` M/X. `n_strong` and
+  `pct_strong_per_year` were therefore wrong in every run (entry 21, "still open"). The checker also treats the other GOES column as
+  "WRONG", while the `method` check allows both: the two disagree.
+- **Noise was never measured.** There is no repeat of an unchanged experiment. E03/E06, E04/E07 and E05/E08 differ in prompts and
+  feedback texts (other git commits), so they are no replicates either. With 5 seeds and sd up to 2.4 funnel stages, differences of
+  about 1 stage between reflection levels cannot be told from noise.
+- **Format and analysis are mixed.** Four of the eight funnel stages check JSON format and keys; entry 21 shows that format slips,
+  not the analysis, ended many runs. `strong_share_increasing` is `False` in the ground truth, so a constant "False" earns a point.
+- **PERFORMANCE_LOG** shows the same "What changed" text for E09 (blind) and E10 (schema); E05 is still `running` in its manifest.
 
-- **Consistent with E10–E13:** one round of reflection gives no net gain on qwen3-4B at about 3.4x the tokens.
-- **2a breaks working code.** Both runs that finished in v1 (s102, s104) crash after 2a. In s102 the revision introduces
-  `pd.Timestamp('2026-02-29')`, the same error that crashed v1 of s101.
-- **2c names the right problem but does not solve it (s104).** The check reports `n_strong: REFUTED`, the critique even says that
-  100 % strong flares is implausible, but the revision keeps the threshold `> 1e-7` and deletes the lines that create the column
-  `date` -> `KeyError`. The "change only what is needed" instruction of the revise prompt is not reliably followed by the 4B model.
-- **Only real repair:** s103 in 2c, one line (`f'{x:02d}'` on a string -> `.str.zfill(2)`).
-- `n_strong` / `pct_strong_per_year` wrong in all 20 versions: thresholds chosen by the model (`> 1e-7`, `>= 4e-7`), not M/X.
-  2c cannot fix this because the check (on purpose) never reveals the correct value.
+### 23. Decisions
+- Work in small versions, each with its own entry in `docs/changes.md` (hypothesis, expected effect, measured effect).
+- C01 (the prompt defines "strong") and C02 (the `report()` helper) are implemented but not yet justified by an observed error in the new series.
+  They wait in `docs/changes.md` as candidates.
+- C03 (atomic claims) and C04 (difficulty ladder) are planned. Reasoning: claims should define their own terms, and results should be
+  recorded by a runner-provided `report()` instead of model-written JSON; both are built on our own experiment structure.
 
-### 23. Baseline v4: research question with definitions (E18–E21)
-- **Decision.** `prompts/step1_baseline_v4.txt` = v3 + a "Definitions" block, taken from the precise research question in
-  `step0_questions.py` (the definition `ground_truth.json` is computed with):
-  a flare belongs to the month of `start_UTC`; "strong" = `goes_estimated_mean_class` starts with M or X.
-  Rationale: without it `n_strong` and `pct_strong_per_year` were unsolvable, so every level was capped at 5/7 facts and the metric
-  measured guessing the definition, not analysis. **Trade-off:** this names the correct GOES column, the trap of Step 0.
-  From v4 on we measure whether the model can implement a given definition, not whether it finds the right column.
-- **Result** (same seeds, same machine; only difference to E14–E17 is the definitions block):
+### 24. Clean-up on the branch
+- Step-1 prompts reduced to two: `prompts/step1_baseline_v3.txt` (old baseline, comparison point) and `prompts/step1_baseline.txt`
+  (current: defines "strong", the model calls `report()`). Removed: the earlier files v2, v4, v5 (v1 was removed here and restored in entry 25 as the starting point of the new series); every old experiment keeps its own copy
+  of the prompt it used in `experiments/<id>/prompts/`.
+- Removed: `peek.py`, `evaluation_summary.csv`, `tools/migrate_runs.py` and the old `runs/` folder (all 47 runs were migrated to
+  `experiments/_legacy`, see entry 14). `runs/` is now git-ignored; only `smoke_test.py` writes there.
 
-| Level | Exp | Ran | Depth | Facts % | Report | Tokens / seed | Δ facts per 1k extra tokens |
-|---|---|---|---|---|---|---|---|
-| baseline | E18_baseline_v4 | 2/5 | 4.0 | 29 | 47 | 3,171 | – |
-| 2a | E19_2a_v4 | 2/5 | 4.2 | 34 | 47 | 10,991 | +0.73 |
-| 2b | E20_2b_v4 | 3/5 | 5.0 | 43 | 62 | 10,519 | +1.94 |
-| 2c | E21_2c_v4 | 2/5 | 4.0 | 31 | 47 | 10,666 | +0.38 |
-
-  Per seed (v1 / 2a / 2b / 2c): s101 crash in all four; s102 crash `2026-02-29` -> 2a same crash, **2b and 2c fixed (71 %)**;
-  s103 86 / 71 / 86 / 86; s104 crash `freq='M'` -> 2a same, **2b fixed (57 %)**, 2c swapped (`'ME'`, but `Period` needs `'M'`);
-  s105 57 / **100** / broken (`NameError`) / broken (`NameError`).
-- **The definition solved the fact problem.** `n_strong` = 1,637 in every finished run that covers the whole period. First run with
-  all 7 facts (E19 s105). The remaining misses of finished runs are small:
-  - s103: all numbers right, only `"2024-9"` instead of `"2024-09"` -> counted as wrong by the checker.
-  - s102 (2b/2c): 2026 has 1,113 instead of 1,134 flares; the filter ends at 2026-02-28 00:00 and drops the last day.
-  - s105 (v1): only the full years 2022–2025 evaluated, so 2021/2026 and part of `n_strong` (1,528) are missing.
-- **The bottleneck is now execution, not the analysis.** 3/5 baselines crash. The most frequent cause is the pandas API:
-  `freq='M'` is no longer supported in the pandas version of the sandbox (`sandbox/Dockerfile` installs pandas unpinned, i.e. the latest);
-  the model writes the older API. `2026-02-29` appears for the third time in our runs.
-- **One round is too short:** in s104 (2c) the model follows the error message (`'M'` -> `'ME'`) and hits the next error, which needs
-  `'M'` again. A second round would likely fix it; argument for the feedback loop of Step 3b.
-- **Reflection looks better on v4, but n is small.** 2b is the best level (+14.3 pp facts for +7.3k tokens), but it also breaks a
-  finished run (s105). One or two seeds move the mean by 15–30 pp; the differences are within the spread.
-
-### 24. Open
-- Pin pandas in the sandbox image (e.g. `pandas==2.2.*`)? Removes most `api_misuse` crashes, but is an experiment condition like the
-  shims (manifest + logbook) and makes v4 results not comparable with pinned runs.
-- Checker: accept `"2024-9"` as `"2024-09"`? (format vs. content; same question as `json_strict` vs. `json_found` in entry 21)
-- More seeds (e.g. `--seeds 106-115` on E18–E21, resumes the experiments) before drawing conclusions about the levels.
-- Step 3b: feedback loop with max N attempts, measure recovery rate, iterations, tokens, and how often a finished run gets broken.
+### 25. Restart on 9 Nov 2026: the series S0-B3
+- **Problem.** The first plan started the new series with options (schema, shims, notebook prompt) that had been added in the old series.
+  Nobody could show in the new series why each option is needed.
+- **Decision.** Start again from the smoke test (S0: 33,076 rows, 40 columns). B1 runs the original prompt (`prompts/step1_baseline_v1.txt`, identical
+  to E01) without schema and without shims. B2 adds `--schema`, B3 adds `--shims`. Every option is added only after the previous run showed
+  the error it fixes. One run (5 seeds) per step: the jumps between steps are larger than the noise inside a run; separate noise
+  runs are planned only for fine-tuning after the reflection steps. The old series E01-E13 stays untouched as history (the "cut").
+- **Replaces** the earlier plan R1 (repeat the old baseline twice).
+- **Where.** Run log with commands, expected and observed errors: `docs/changes.md`.

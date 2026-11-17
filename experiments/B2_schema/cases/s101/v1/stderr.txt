@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/code/code.py", line 80, in <module>
+    "busiest_month_count": int(busiest_month_count),
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: int() argument must be a string, a bytes-like object or a real number, not 'Series'

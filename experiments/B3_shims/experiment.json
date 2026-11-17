@@ -1,0 +1,36 @@
+{
+  "id": "B3_shims",
+  "level": "baseline",
+  "base": null,
+  "change": "B2 + shims",
+  "runner_shims": true,
+  "shim_hash": "sha256:8bda74ec8201",
+  "report_helper": false,
+  "report_helper_hash": null,
+  "note": "",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "data_context": "schema",
+  "model": "qwen3-4b-instruct-16k",
+  "model_digest": "8b939f12b0f9",
+  "temperature": 0.7,
+  "max_tokens": 4000,
+  "llm_max_seconds": 600,
+  "prompts": {
+    "generate": "sha256:df6f329aee66",
+    "schema": "sha256:b445db2c809c"
+  },
+  "git_commit": "def6ccd",
+  "git_dirty": true,
+  "machine": "MacBook-Pro-von-Vanessa.local (Darwin, 8 CPUs)",
+  "ollama_url": "http://localhost:11434/v1",
+  "docker_image": "agai-sandbox",
+  "started": "2026-11-09T22:37:28",
+  "finished": "2026-11-09T22:43:50",
+  "status": "complete"
+}

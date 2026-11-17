@@ -1,11 +1,11 @@
 """Analyse all experiments: one CSV row per version, and per baseline a comparison seed x level.
 
 Run:  python analyze.py                          all experiments; comparison for every baseline
-      python analyze.py --trace E01_baseline_schema 101   one trace as a story (--version v1, --full)
-      python analyze.py --run E01_baseline_schema 101     all details of one version; --details: one line per version
+      python analyze.py --trace B4_strong 101   one trace as a story (--version v1, --full)
+      python analyze.py --run B4_strong 101     all details of one version; --details: one line per version
       python analyze.py --exp <exp> --judge           LLM judge on the reports (--judge-code: on the code; needs Ollama)
       python analyze.py --exp <exp> --human-template  human_scores.csv to fill in; then --agreement compares it with the judge
-      python analyze.py --base E01_baseline_schema   only this baseline and the levels built on it
+      python analyze.py --base B4_strong   only this baseline and the levels built on it
       python analyze.py --legacy                 also include experiments/_legacy (migrated old runs)
 
 Writes:
@@ -36,7 +36,7 @@ from src.evaluate import FUNNEL, WEIGHTS, facts_for_dir, funnel_for_dir, report_
 RESULTS_DIR = config.ROOT / "results"
 TEXT_KEYS = ["n_months", "busiest_month", "busiest_month_count", "n_strong", "strong_share_increasing"]   # readable from prose
 COLUMNS = ["experiment", "base", "level", "data_context", "case", "seed", "version", "parent", "llm_error",
-           "exit_code", "error_category", "error_line", "results_json_found", "fact_score", "n_plots",
+           "exit_code", "error_category", "error_line", "results_json_found", "fact_score", "fact_score_partial", "n_plots",
            "llm_calls", "prompt_tokens", "completion_tokens", "llm_seconds", "exec_seconds", "truncated",
            "funnel_depth", "crash_pos", "report_precision", "report_overall", *[f"rep_{d}" for d in WEIGHTS], "report_flags", "text_fact_score", *[f"text_{k}" for k in TEXT_KEYS],
            *[f"fact_{k}" for k in KEYS], *FUNNEL]
@@ -72,7 +72,7 @@ def collect(legacy=False):
                 "data_context": m.get("data_context"), "case": res_file.parent.parent.name,
                 "seed": r.get("seed"), "version": res_file.parent.name, "parent": r.get("parent"),
                 **{k: r.get(k) for k in ("llm_error", "exit_code", "error_category", "error_line",
-                                         "results_json_found", "fact_score", "n_plots")},
+                                         "results_json_found", "fact_score", "fact_score_partial", "n_plots")},
                 **{k: cost.get(k) for k in ("llm_calls", "prompt_tokens", "completion_tokens",
                                             "llm_seconds", "exec_seconds", "truncated")},
                 "funnel_depth": fn["depth"], "crash_pos": crash_pos, "report_precision": report_precision(stdout_file.read_text(encoding="utf-8")) if stdout_file.exists() else None,
@@ -439,7 +439,7 @@ def version_dirs(exp_id, manifests):
 
 
 def case_id(d):
-    """The id used in human_scores.csv: the folder relative to experiments/, e.g. E01_baseline_schema/cases/s101/v1."""
+    """The id used in human_scores.csv: the folder relative to experiments/, e.g. B4_strong/cases/s101/v1."""
     return d.relative_to(config.EXPERIMENTS_DIR).as_posix()
 
 
@@ -553,10 +553,10 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", help="only this baseline experiment and its levels")
     ap.add_argument("--legacy", action="store_true", help="include migrated old runs in versions.csv")
-    ap.add_argument("--trace", nargs=2, metavar=("EXP", "SEED"), help="print one trace as a story, e.g. --trace E01_baseline_schema 101")
+    ap.add_argument("--trace", nargs=2, metavar=("EXP", "SEED"), help="print one trace as a story, e.g. --trace B4_strong 101")
     ap.add_argument("--version", help="with --trace: only this version, e.g. v1 or 2a")
     ap.add_argument("--full", action="store_true", help="with --trace: also print prompts and answers")
-    ap.add_argument("--run", nargs=2, metavar=("EXP", "SEED"), help="all details of one version, e.g. --run E01_baseline_schema 101")
+    ap.add_argument("--run", nargs=2, metavar=("EXP", "SEED"), help="all details of one version, e.g. --run B4_strong 101")
     ap.add_argument("--details", action="store_true", help="one line per version with the report quality")
     ap.add_argument("--exp", help="for --judge, --judge-code, --human-template: the experiment to work on")
     ap.add_argument("--judge", action="store_true", help="LLM judge on the report text (needs Ollama)")

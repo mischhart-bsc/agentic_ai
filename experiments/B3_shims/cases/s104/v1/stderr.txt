@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<string>", line 59, in <module>
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/code/code.py", line 50, in <module>
+    busiest_month = pd.to_datetime(f"{busiest_month_count.year}-{busiest_month_count.month:02d}-01").strftime('%Y-%m')
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'numpy.int32' object has no attribute 'year'

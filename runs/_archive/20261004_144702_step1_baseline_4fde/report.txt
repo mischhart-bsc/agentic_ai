@@ -1,8 +1,0 @@
-/code/step_002.py:23: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
-  data[date_col] = pd.to_datetime(data[date_col], errors='coerce')
-/code/step_002.py:61: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
-  plt.legend(title='Year')
-Traceback (most recent call last):
-  File "/code/step_002.py", line 72, in <module>
-    raise ValueError("No flare strength column found (class or goes_class).")
-ValueError: No flare strength column found (class or goes_class).

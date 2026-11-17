@@ -1,0 +1,11 @@
+- The code fails to correctly compute the busiest month: the reported value "2021-02" is contradicted by an independent check, indicating a flaw in the aggregation or identification of peak monthly counts.  
+- The claim that the share of strong flares increases from 2022 to 2025 is refuted by the independent computation, suggesting a mistake in the logic or calculation of the yearly strong flare percentages.  
+- The flares_per_year and pct_strong_per_year values in the RESULTS_JSON are not validated against the actual data, and the independent check confirms these values are missing or incorrect.  
+- The code does not properly extract the actual monthly counts from the full dataset; it uses a derived monthly_counts_sorted but does not verify that the maximum count corresponds to the correct month and year.  
+- The variable "busiest_month_count" is assigned a hardcoded value (198) without being computed from the actual data, leading to an unsupported and incorrect value.  
+- The code does not handle missing or invalid data correctly—rows with invalid timestamps are dropped, but the impact on the final statistics is not assessed, and the result distribution is not robust.  
+- The independent check shows that no RESULTS_JSON line was printed, violating the requirement to output a JSON with all requested keys and values.  
+- The report text contains factual errors that are contradicted by the independent computation, indicating a failure to base conclusions on accurate data.  
+- The code does not validate that the data spans exactly from February 2021 to February 2026, and the filtering step may not be correctly applied to the full range.  
+- The strong flare threshold (GOES flux > 1e-7) is applied correctly in logic, but the resulting percentages and counts are not computed from the actual data distribution.  
+- The final RESULTS_JSON is constructed without being derived from the computed data, and the values are not properly validated or extracted.

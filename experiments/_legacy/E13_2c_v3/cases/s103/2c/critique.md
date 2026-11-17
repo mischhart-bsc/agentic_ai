@@ -1,0 +1,12 @@
+- The code fails with an IndexError when accessing `.values[0]` on a possibly empty DataFrame, indicating incorrect handling of empty or missing groupings in the pivot table.
+- The logic for retrieving monthly counts in the loop incorrectly uses `monthly_counts_filtered_pivot.loc[...]` with boolean indexing that may produce empty results, leading to out-of-bounds errors.
+- The variable `monthly_counts_filtered_pivot` is not properly constructed or validated; it may not have any entries due to filtering or grouping, resulting in empty axes and subsequent index errors.
+- The code assumes data exists for all months and years from 2021 to 2026, but the original dataset may not contain flares for every month or year, especially in early or late periods.
+- The calculation of `n_strong` uses `goes_estimated_mean_flux >= 1e-6`, but the column is defined as float64 and may have missing values (NaN), which were not handled properly—this could result in incorrect strong flare counts.
+- The `pct_strong_per_year` calculation uses division of sums, but no handling of zero denominator or missing values is present, risking division by zero or invalid percentages.
+- The `strong_share_increasing` check evaluates only years 2022–2025, but the data may contain no flares in some years, leading to invalid or missing percentages and incorrect trend assessment.
+- The code attempts to save plots to `/outputs/`, but the directory is created only if it exists, and no error handling is present for failed I/O operations.
+- The final summary and JSON output are never printed or saved, as the code terminates early due to the crash.
+- The code does not handle edge cases such as missing data, empty groups, or invalid timestamps, making it fragile and non-robust.
+- The logic to extract the busiest month fails due to incorrect indexing and assumes a non-empty pivot table with valid entries for every month-year combination.
+- The independent check confirms that no results were saved or printed, meaning no output was produced at all—violating the requirement to show and save every plot and print the summary.

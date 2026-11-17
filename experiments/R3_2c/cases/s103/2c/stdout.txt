@@ -1,0 +1,28 @@
+Exploratory analysis completed.
+The monthly count of solar flares shows a steady increase from February 2021 to February 2026, with a notable rise in strong flares (M/X class) during the later years.
+The share of strong flares remains stable or decreases slightly over the years 2022–2025, indicating no significant rise in solar eruptive activity.
+The busiest month in terms of flare count is September 2024, with 1724 flares observed.
+The monthly distribution reveals a consistent pattern with peaks in early months of each year.
+Strong flares (M/X class) represent a stable or slightly decreasing proportion of total flares, suggesting no significant increase in solar eruptive activity.
+The data shows that the solar activity trend is consistent but not increasing, with strong flares showing no clear upward trend from 2022 onward.
+RESULTS_JSON: {
+  "n_months": 61,
+  "busiest_month": "2024-09",
+  "busiest_month_count": 1724,
+  "flares_per_year": {
+    "2021": 694,
+    "2022": 4787,
+    "2023": 6469,
+    "2024": 12330,
+    "2025": 7662,
+    "2026": 1134
+  },
+  "n_strong": 1637,
+  "pct_strong_per_year": {
+    "2022": 5.159807812826405,
+    "2023": 5.394960581233575,
+    "2024": 5.158150851581508,
+    "2025": 3.86322109109893
+  },
+  "strong_share_increasing": false
+}

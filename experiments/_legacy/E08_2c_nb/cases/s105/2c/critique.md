@@ -1,0 +1,17 @@
+- The code fails during execution due to an incorrect use of `pd.Categorical` on a non-category column (`month_name`), which raises an `AttributeError` because the column does not have a categorical dtype.  
+- The `month_name` column is created from strings, but `pd.Categorical` can only be applied to columns with a categorical dtype, which is not the case here.  
+- The code attempts to assign a categorical dtype to a column that was never converted to categorical, violating pandas’ type safety and causing runtime error.  
+- The plot saving step fails silently because no plots are actually saved (the error occurs before any plot is generated), and no PNG files are saved to `/outputs/`.  
+- The `RESULTS_JSON` output is never printed to stdout, so the final requirement (printing the JSON line) is not met.  
+- The values in the final JSON are incorrect or missing because the independent check confirms all 7 requested facts are missing or unsupported.  
+- The report findings are not verifiable because no facts are stated in the prose that could be checked against the actual data.  
+- The code does not correctly compute the number of months, busiest month count, or strong flare share, as these are not derived from valid data paths.  
+- The strong share increasing flag is computed incorrectly — it relies on a loop over years that may miss or misinterpret the data structure.  
+- The code fails to process the full data range (2021–2026) properly, as it creates a `monthly_data` that may not cover all months or years.  
+- The variable `monthly_data_sorted` is created but not properly validated; it is used in plotting without ensuring correct ordering or coverage.  
+- The code does not handle missing values or edge cases (e.g., missing start_UTC) and could produce incorrect counts.  
+- The GOES flux threshold for "strong" flares (1e-7) is arbitrary and not clearly defined in the code or report.  
+- The final JSON is constructed with incorrect or unsupported values, as the independent check confirms all entries are missing.  
+- The code violates the requirement to save plots as PNG in `/outputs/` — no plots are saved.  
+- The entire analysis is invalid due to runtime errors and incorrect data processing.  
+- The final output is missing the required `RESULTS_JSON` line, which is a direct failure of the task.

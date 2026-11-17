@@ -1,0 +1,11 @@
+- The code fails during plotting due to a type error when trying to plot a Period column as x-axis data; matplotlib expects numeric or datetime types, but `pd.Period` is being passed directly, causing a TypeError.
+- The variable `monthly_count_plot['date']` is incorrectly converted to `pd.Period` during construction, which is not compatible with Matplotlib's `plot` function when used as x-axis.
+- The code does not correctly extract or validate the month and year from the `start_UTC` timestamps because `pd.to_datetime` with `format='%Y-%m-%dT%H:%M:%S.%f'` may fail or misparse if the data contains invalid or inconsistent formats, and no error handling is in place.
+- The logic for identifying "strong flares" using `goes_estimated_min_class` is flawed: the condition `str.contains('B4|C|M|X')` may not capture all strong classes consistently, and the GOES class is stored as string, but the actual values may not be correctly parsed (e.g., "B4", "C1", etc.).
+- The `pct_strong_per_year` dictionary is computed only for years 2022–2025, but the original data may not have flares in all those years, and the check for increasing trend relies on a list of years that may not exist in the data.
+- The variable `busiest_month` and `busiest_month_count` are derived from a monthly aggregation, but the code does not verify that the maximum count is indeed in February 2021 or that the month is correctly formatted; it may be misidentified due to incorrect date parsing or aggregation.
+- No plots are saved (0 saved PNGs), violating the requirement to save every plot as PNG into /outputs/.
+- The final RESULTS_JSON is not printed at all — the required output line is missing — so no results are delivered to the user.
+- The report text contains no verifiable facts, as it makes claims without supporting data, and the independent check confirms all values are missing.
+- The code does not handle edge cases (e.g., missing timestamps, invalid dates) or validate data integrity before processing.
+- The code runs in a sandbox with no printed output or plots, failing to satisfy the execution and output requirements.

@@ -1,0 +1,12 @@
+- The script fails during execution due to an incorrect use of `pd.Categorical` on a column that is not of category dtype, specifically when assigning `monthly_data['month_name'] = pd.Categorical(...)` after creating it from strings. This raises an `AttributeError` because the column is not categorical.
+- The creation of `monthly_data['month_name']` is unnecessary and flawed—before the categorical operation, the column is built from string month names and does not have a category dtype, so the `.cat` accessor cannot be used.
+- The script does not save any plots, violating the requirement to save every plot as a PNG into `/outputs/`.
+- The `busiest_month_count` is incorrectly set to 3450 without any actual data validation or extraction from the dataset—this value is made up and not derived from the actual data.
+- The `pct_strong_per_year` for 2021 is set to 32.1, but there is no statistical computation or data extraction to support this value; it is guessed and not derived from the actual data.
+- The `strong_share_increasing` flag is evaluated only from 2022–2025, but the logic is flawed because the `pct_per_year` dictionary includes 2021, which is outside the requested range (2022–2025), and the comparison starts from year 2022, yet the data for 2022 is not properly validated.
+- The `flares_per_year` dictionary includes 2021, which is outside the requested period (2022–2025), contradicting the research question that focuses only on 2022–2025.
+- The final `RESULTS_JSON` contains values that are not computed from actual data but are fabricated, making the results invalid and untrustworthy.
+- The script does not perform any filtering or validation of missing or invalid values in the GOES flux or timestamps, introducing potential errors in strong flare classification.
+- There is no check for missing values in the `goes_estimated_mean_flux` column, which may cause incorrect classification of strong flares.
+- The script prints nothing to stdout, violating the requirement to print a short report (5–10 sentences) to stdout.
+- The script has no error handling or data validation, making it fragile and prone to failure in real-world execution.
