@@ -1,0 +1,19 @@
+{
+  "id": "B2_schema",
+  "level": "baseline",
+  "base": null,
+  "change": "B1 + schema in the prompt",
+  "note": "",
+  "data_context": "schema",
+  "runner_shims": false,
+  "shim_hash": null,
+  "report_helper": false,
+  "report_helper_hash": null,
+  "model": "qwen3-4b-instruct-16k",
+  "temperature": 0.7,
+  "max_tokens": 4000,
+  "prompts": {
+    "generate": "sha256:df6f329aee66",
+    "schema": "sha256:b445db2c809c"
+  }
+}

@@ -3,36 +3,19 @@
   "level": "2c",
   "base": "B4_strong",
   "change": "B4 + reflection 2c (sees run output and fact check)",
+  "note": "",
+  "data_context": "schema",
   "runner_shims": true,
   "shim_hash": "sha256:8bda74ec8201",
   "report_helper": false,
   "report_helper_hash": null,
-  "note": "",
-  "seeds": [
-    101,
-    102,
-    103,
-    104,
-    105
-  ],
-  "data_context": "schema",
   "model": "qwen3-4b-instruct-16k",
-  "model_digest": "8b939f12b0f9",
   "temperature": 0.7,
   "max_tokens": 4000,
-  "llm_max_seconds": 600,
   "prompts": {
     "critique": "sha256:13d72d5b754d",
     "revise": "sha256:d5bfe37c5a58",
     "feedback_2b": "sha256:540eaef35fd3",
     "feedback_2c": "sha256:64d10754e3ad"
-  },
-  "git_commit": "def6ccd",
-  "git_dirty": true,
-  "machine": "MacBook-Pro-von-Vanessa.local (Darwin, 8 CPUs)",
-  "ollama_url": "http://localhost:11434/v1",
-  "docker_image": "agai-sandbox",
-  "started": "2026-11-10T18:50:25",
-  "finished": "2026-11-10T19:02:54",
-  "status": "complete"
+  }
 }

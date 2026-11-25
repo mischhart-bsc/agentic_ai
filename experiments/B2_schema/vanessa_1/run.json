@@ -1,0 +1,22 @@
+{
+  "person": "vanessa",
+  "base_run": null,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "model_digest": "8b939f12b0f9",
+  "llm_max_seconds": 600,
+  "git_commit": "def6ccd",
+  "git_dirty": true,
+  "machine": "MacBook-Pro-von-Vanessa.local (Darwin, 8 CPUs)",
+  "ollama_url": "http://localhost:11434/v1",
+  "docker_image": "agai-sandbox",
+  "started": "2026-11-09T22:01:31",
+  "finished": "2026-11-09T22:08:51",
+  "status": "complete",
+  "migrated_from": "experiments/B2_schema/ (flat layout, moved by tools/migrate_to_runs.py)"
+}
