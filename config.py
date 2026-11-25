@@ -18,3 +18,12 @@ DATA_DIR = ROOT / "data"
 RUNS_DIR = ROOT / "runs"
 EXPERIMENTS_DIR = ROOT / "experiments"      # one folder per experiment
 DATA_FILE = "stix_flarelist.csv"            # lies in data/, in Container under /data/
+
+# --- Who runs an experiment (run folders are named <person>_<n>, e.g. vanessa_1) ---
+# The person is found from the machine name (platform.node()). On another machine: add it here,
+# or set the environment variable AGAI_PERSON for one session.
+RUNNERS = {
+    "MacBook-Pro-von-Vanessa.local": "vanessa",
+    "MacBook-Air-von-Jan.local": "jan",
+    "Surface-Mischa": "mischa",
+}

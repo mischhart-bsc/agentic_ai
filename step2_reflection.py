@@ -11,14 +11,17 @@ long answer twice (tested 2026-10-09), so every level must start from the stored
 Run:  python step2_reflection.py --exp R1_2a --level 2a --base B4_strong --change "..."
       python step2_reflection.py --exp R2_2b --level 2b --base B4_strong --change "..."
       python step2_reflection.py --exp R3_2c --level 2c --base B4_strong --change "..."
-      (seeds default to all seeds of the base; same command again = resume)
+      (seeds default to all seeds of the base; same command again = resume your unfinished run)
+
+--base is a RUN, because a reflection reflects on exactly its frozen v1s: --base B4_strong/vanessa_1.
+If the condition has only one run, --base B4_strong is enough. --repeat starts a further run (<person>_<n+1>).
 """
 import argparse
 import json
 
 import config
 from src.evaluate import evaluate_version, summary_line
-from src.experiment import Experiment, change_missing, load, parse_seeds
+from src.experiment import Experiment, case_path, change_missing, load, parse_seeds, resolve
 from src.feedback import build_feedback, prompt_texts
 from src.llm import chat
 from src.runner import run_code
@@ -32,7 +35,7 @@ REVISE = (config.ROOT / "prompts" / "step2a_revise.txt").read_text(encoding="utf
 
 def load_v1(base_id, seed):
     """The frozen v1 of one seed: folder, generate messages, answer and result. None if it is not usable."""
-    case_dir = config.EXPERIMENTS_DIR / base_id / "cases" / f"s{seed}"
+    case_dir = case_path(base_id, seed)
     v1_dir = case_dir / "v1"
     if not (v1_dir / "result.json").exists():
         return None
@@ -74,37 +77,40 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--exp", required=True, help="experiment id, e.g. R1_2a")
     ap.add_argument("--level", required=True, choices=LEVELS)
-    ap.add_argument("--base", required=True, help="baseline experiment whose v1 is reflected on")
+    ap.add_argument("--base", required=True, help="baseline run whose v1 is reflected on, e.g. B4_strong/vanessa_1")
     ap.add_argument("--seeds", help="default: all seeds of the base, e.g. 101-105")
     ap.add_argument("--change", default="", help="what is different from the experiment you compare with (required for a new experiment)")
     ap.add_argument("--note", default="", help="free text for the manifest")
+    ap.add_argument("--repeat", action="store_true", help="start a further run of a condition you already ran (<person>_<n+1>)")
     args = ap.parse_args()
     if change_missing(args.exp, args.change):
         ap.error("--change is required for a new experiment: one sentence on what is different from the one you compare with")
 
-    base = load(args.base)
+    base_id = resolve(args.base)                      # a run, e.g. B4_strong/vanessa_1
+    base = load(base_id)
     if base["level"] != "baseline":
-        raise SystemExit(f"--base must be a baseline experiment, '{args.base}' has level {base['level']}")
+        raise SystemExit(f"--base must be a baseline experiment, '{base_id}' has level {base['level']}")
     seeds = parse_seeds(args.seeds) if args.seeds else base["seeds"]
     missing = [s for s in seeds if s not in base["seeds"]]
     if missing:
-        raise SystemExit(f"Seeds {missing} are not in the base experiment {args.base}")
+        raise SystemExit(f"Seeds {missing} are not in the base run {base_id}")
 
     prompts = {"critique": CRITIQUE, "revise": REVISE, **prompt_texts(args.level)}
-    exp = Experiment(args.exp, args.level, prompts, seeds, base=args.base,
+    exp = Experiment(args.exp, args.level, prompts, seeds, base=base_id,
                      data_context=base["data_context"], runner_shims=base.get("runner_shims", False),
-                     report_helper=base.get("report_helper", False), change=args.change, note=args.note)
+                     report_helper=base.get("report_helper", False), change=args.change, note=args.note,
+                     new_run=args.repeat)
 
-    print(f"Experiment {exp.id}: level {args.level} on {args.base}, seeds {exp.seeds}")
+    print(f"Experiment {exp.id}: level {args.level} on {base_id}, seeds {exp.seeds}")
     for seed in exp.seeds:
         if exp.is_done(seed, args.level):
             print(f"s{seed} {args.level}  already done, skipped")
             continue
-        v1 = load_v1(args.base, seed)
+        v1 = load_v1(base_id, seed)
         if v1 is None:
-            print(f"s{seed} {args.level}  skipped: v1 of {args.base} has no usable answer")
+            print(f"s{seed} {args.level}  skipped: v1 of {base_id} has no usable answer")
             continue
-        print(summary_line(reflect(Case(exp, seed), args.base, v1, args.level, shims=exp.manifest["runner_shims"],
+        print(summary_line(reflect(Case(exp, seed), base_id, v1, args.level, shims=exp.manifest["runner_shims"],
                                   report_helper=exp.manifest["report_helper"])))
     exp.finish()
     print(f"\nDone: {exp.dir}")

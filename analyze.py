@@ -1,17 +1,26 @@
-"""Analyse all experiments: one CSV row per version, and per baseline a comparison seed x level.
+"""Analyse all experiments: one CSV row per version, per condition the mean over its runs, and per baseline run a
+comparison seed x level.
+
+Structure: experiments/<condition>/<person>_<n>/s<seed>/ (see src/experiment.py). Inside this script a run is called
+by its unit id "<condition>/<run>", e.g. B4_strong/vanessa_1. Where a command takes an id, a condition with a single
+run is enough (B4_strong). Old flat experiments (experiments/_legacy, --legacy) count as a condition with one run.
+
+Two-stage mean (PERFORMANCE_LOG.md, section 0): first the mean over the seeds of each run, then the mean of these
+run means, so every run has the same weight. A reflection condition is compared with its base run by run
+(paired): each run minus the base run it reflected on, then averaged.
 
 Run:  python analyze.py                          all experiments; comparison for every baseline
       python analyze.py --trace B4_strong 101   one trace as a story (--version v1, --full)
       python analyze.py --run B4_strong 101     all details of one version; --details: one line per version
       python analyze.py --exp <exp> --judge           LLM judge on the reports (--judge-code: on the code; needs Ollama)
       python analyze.py --exp <exp> --human-template  human_scores.csv to fill in; then --agreement compares it with the judge
-      python analyze.py --base B4_strong   only this baseline and the levels built on it
+      python analyze.py --base B4_strong/vanessa_1   only this baseline run and the levels built on it
       python analyze.py --legacy                 also include experiments/_legacy (migrated old runs)
 
 Writes:
   results/versions.csv                  one row per version (experiment, seed, version, exit, error, facts, cost)
   PERFORMANCE_LOG.md                    one row per experiment: what changed, funnel, facts, cost, conditions
-  results/comparison_<base>.html        table seed x level, transitions vs. v1, means and cost per level
+  results/comparison_<base run>.html    table seed x level, transitions vs. v1, means and cost per level
 
 Transitions of a level compared with v1 of the same seed:
   fixed       v1 crashed, the level runs
@@ -32,10 +41,11 @@ from statistics import mean, median, pstdev
 import config
 from src.checker import KEYS, report_precision
 from src.evaluate import FUNNEL, WEIGHTS, facts_for_dir, funnel_for_dir, report_quality_for_dir
+from src.experiment import case_path, load, resolve, runs_of, unit_dir
 
 RESULTS_DIR = config.ROOT / "results"
 TEXT_KEYS = ["n_months", "busiest_month", "busiest_month_count", "n_strong", "strong_share_increasing"]   # readable from prose
-COLUMNS = ["experiment", "base", "level", "data_context", "case", "seed", "version", "parent", "llm_error",
+COLUMNS = ["experiment", "condition", "run", "person", "base", "level", "data_context", "case", "seed", "version", "parent", "llm_error",
            "exit_code", "error_category", "error_line", "results_json_found", "fact_score", "fact_score_partial", "n_plots",
            "llm_calls", "prompt_tokens", "completion_tokens", "llm_seconds", "exec_seconds", "truncated",
            "funnel_depth", "crash_pos", "report_precision", "report_overall", *[f"rep_{d}" for d in WEIGHTS], "report_flags", "text_fact_score", *[f"text_{k}" for k in TEXT_KEYS],
@@ -43,21 +53,33 @@ COLUMNS = ["experiment", "base", "level", "data_context", "case", "seed", "versi
 
 
 # ---------------------------------------------------------------- collect
-def experiment_dirs(legacy=False):
+def unit_ids(legacy=False):
+    """Unit ids of all runs: '<condition>/<run>' for the run structure, the folder name for a flat experiment."""
     root = config.EXPERIMENTS_DIR
-    dirs = [d for d in sorted(root.glob("*")) if (d / "experiment.json").exists()]
+    ids = []
+    for d in sorted(root.glob("*")):
+        if (d / "condition.json").exists():
+            ids += [f"{d.name}/{r}" for r in runs_of(d.name)]
+        elif (d / "experiment.json").exists():          # flat experiment (before tools/migrate_to_runs.py)
+            ids.append(d.name)
     if legacy:
-        dirs += [d for d in sorted((root / "_legacy").glob("*")) if (d / "experiment.json").exists()]
-    return dirs
+        ids += [d.name for d in sorted((root / "_legacy").glob("*")) if (d / "experiment.json").exists()]
+    return ids
+
+
+def version_files(unit_id):
+    """All result.json of a run: <run>/s*/<version>/ or, flat, <experiment>/cases/s*/<version>/."""
+    d = unit_dir(unit_id)
+    return sorted(d.glob("cases/*/*/result.json") if (d / "cases").is_dir() else d.glob("s*/*/result.json"))
 
 
 def collect(legacy=False):
-    """(manifests by id, rows): one row per result.json of every experiment."""
+    """(manifests by unit id, rows): one row per result.json of every run."""
     manifests, rows = {}, []
-    for d in experiment_dirs(legacy):
-        m = json.loads((d / "experiment.json").read_text(encoding="utf-8"))
-        manifests[m["id"]] = m
-        for res_file in sorted(d.glob("cases/*/*/result.json")):
+    for uid in unit_ids(legacy):
+        m = load(uid)
+        manifests[uid] = m
+        for res_file in version_files(uid):
             r = json.loads(res_file.read_text(encoding="utf-8"))
             r.update(facts_for_dir(res_file.parent))        # fresh, so a parser change applies to old runs too
             cost = r.get("cost") or {}
@@ -68,7 +90,8 @@ def collect(legacy=False):
             n_lines = len(code_file.read_text(encoding="utf-8").splitlines()) if code_file.exists() else 0
             crash_pos = round(r["error_line"] / n_lines, 2) if r.get("error_line") and n_lines else None
             rows.append({
-                "experiment": m["id"], "base": m.get("base"), "level": m.get("level"),
+                "experiment": uid, "condition": m.get("condition"), "run": m.get("run"), "person": m.get("person"),
+                "base": m.get("base"), "level": m.get("level"),
                 "data_context": m.get("data_context"), "case": res_file.parent.parent.name,
                 "seed": r.get("seed"), "version": res_file.parent.name, "parent": r.get("parent"),
                 **{k: r.get(k) for k in ("llm_error", "exit_code", "error_category", "error_line",
@@ -231,7 +254,8 @@ a{{color:#222}} .legend span{{padding:2px 8px;margin-right:6px}}</style></head><
 <h3>Per level</h3><table><tr><th></th>{''.join(f'<th>{l}</th>' for l in levels)}</tr>{summary}</table>
 <p><small>Every level starts from the same frozen v1 of the baseline. Transitions compare a level with v1 of the
 same seed; infrastructure failures are excluded. Click a cell to open its code.</small></p></body></html>"""
-    path = RESULTS_DIR / f"comparison_{base_id}.html"
+    RESULTS_DIR.mkdir(exist_ok=True)
+    path = RESULTS_DIR / f"comparison_{base_id.replace('/', '__')}.html"
     path.write_text(page, encoding="utf-8")
     return path
 
@@ -284,13 +308,15 @@ def experiment_summary(exp_id, manifest, rows):
 
 
 def reference_of(exp_id, manifests):
-    """What an experiment is compared with: its base, or for a baseline the previous baseline (by start time)."""
+    """What a run is compared with: its base run, or for a baseline the previous baseline run of ANOTHER condition
+    (by start time), preferably from the same person."""
     m = manifests[exp_id]
     if m.get("base"):
         return m["base"]
-    earlier = [i for i, o in manifests.items() if o.get("level") == "baseline" and i != exp_id
+    earlier = [i for i, o in manifests.items() if o.get("level") == "baseline" and o.get("condition") != m.get("condition")
                and (o.get("started") or "") < (m.get("started") or "")]
-    return max(earlier, key=lambda i: manifests[i].get("started") or "", default=None)
+    same_person = [i for i in earlier if manifests[i].get("person") == m.get("person")]
+    return max(same_person or earlier, key=lambda i: manifests[i].get("started") or "", default=None)
 
 
 def quality_vs_cost(ids, manifests, sums):
@@ -328,6 +354,55 @@ def quality_vs_cost(ids, manifests, sums):
     return L
 
 
+def short(unit_id):
+    """'B4_strong/vanessa_1' -> 'B4/vanessa_1', 'E10_baseline_v3' -> 'E10' (for table cells)."""
+    cond, _, run = (unit_id or "").partition("/")
+    return f"{cond.split('_')[0]}/{run}" if run else cond.split("_")[0]
+
+
+def _run_means(ids, sums, key):
+    """{unit id: mean over its seeds} for the runs that have values for key."""
+    return {i: mean(sums[i][key]) for i in ids if sums[i][key]}
+
+
+def condition_overview(ids, manifests, sums):
+    """Section 0: one row per condition. Stage 1: mean over the seeds of each run. Stage 2: mean of the run means.
+    sd runs = spread of the run means (needs 2+ runs); sd seeds = mean spread over the seeds inside a run.
+    Delta vs base (paired): each reflection run minus the base run it reflected on, averaged over the runs."""
+    conds = {}
+    for i in ids:
+        conds.setdefault(manifests[i].get("condition") or i, []).append(i)
+    L = ["## 0. Per condition (two-stage mean over runs)", "",
+         "Stage 1: mean over the 5 seeds of a run. Stage 2: mean of these run means (every run weighs the same). "
+         "**sd runs** = spread between the run means (shows whether a repetition gives the same result; needs 2+ runs). "
+         "**sd seeds** = mean spread over the seeds inside a run. **Δ facts (paired)**: every reflection run minus "
+         "the base run it reflected on, averaged over the runs.", "",
+         "| Condition | Level | Runs | Ran % | Depth | Facts % | sd runs | sd seeds | Δ facts (paired) | Tokens / seed |",
+         "|---|---|---|---|---|---|---|---|---|---|"]
+    for cond, members in conds.items():
+        done = [i for i in members if sums[i]["n"]]
+        m = manifests[members[0]]
+        if not done:
+            L.append(f"| {cond} | {m.get('level')} | {', '.join(manifests[i].get('run') or '–' for i in members)} | "
+                     "no results yet | | | | | | |")
+            continue
+        ran = [100 * sums[i]["ran"] / (sums[i]["n"] - sums[i]["infra"]) for i in done if sums[i]["n"] - sums[i]["infra"]]
+        facts = _run_means(done, sums, "facts")
+        depth = _run_means(done, sums, "depth")
+        within = [pstdev(sums[i]["facts"]) for i in done if len(sums[i]["facts"]) > 1]
+        paired = [facts[i] - mean(sums[b]["facts"]) for i in facts
+                  for b in [manifests[i].get("base")] if b in sums and sums[b]["facts"]]
+
+        def fmt(xs, f):
+            return "–" if not xs else f.format(mean(xs))
+        sd_runs = f"{pstdev(facts.values()):.1f}" if len(facts) > 1 else "– (1 run)"
+        L.append(f"| {cond} | {m.get('level')} | {', '.join(manifests[i].get('run') or '–' for i in done)} | "
+                 f"{fmt(ran, '{:.0f}')} | {fmt(list(depth.values()), '{:.1f}')} | {fmt(list(facts.values()), '{:.1f}')} | "
+                 f"{sd_runs} | {fmt(within, '{:.1f}')} | {fmt(paired, '{:+.1f}')} | "
+                 f"{mean(mean(sums[i]['tokens']) for i in done):,.0f} |")
+    return L
+
+
 def write_performance_log(manifests, rows):
     ids = sorted((i for i, m in manifests.items() if m.get("status") != "legacy" and not i.startswith("L")),
                  key=lambda i: manifests[i].get("started") or "")
@@ -339,7 +414,7 @@ def write_performance_log(manifests, rows):
         if ref not in sums or not sums[i][key] or not sums[ref][key]:
             return "–"
         d = mean(sums[i][key]) - mean(sums[ref][key])
-        return f"{d:+.1f} vs {ref.split('_')[0]}"
+        return f"{d:+.1f} vs {short(ref)}"
 
     L = ["# Performance log", "",
          f"Generated by `python analyze.py` on {datetime.now():%Y-%m-%d %H:%M}. **Do not edit by hand** "
@@ -349,9 +424,10 @@ def write_performance_log(manifests, rows):
          "`ground_truth.json`. **Δ** = difference of the mean against the reference experiment named in the cell.", "",
          "Shims = runner helpers (`SHIM` in `src/runner.py`: `display`, numpy-safe JSON). Rerun experiments execute the code of another experiment again "
          "(no LLM call, so tokens are 0).", "",
-         "Funnel stages: " + " → ".join(f"`{k}`" for k in FUNNEL), "",
-         "## 1. Overview", "",
-         f"| Exp | Level | What changed | Ran | Depth (0-{n_stage}) | Δ depth | Crash at | Facts % | Δ facts | Tokens / seed | LLM s / seed |",
+         "Funnel stages: " + " → ".join(f"`{k}`" for k in FUNNEL), ""]
+    L += condition_overview(ids, manifests, sums)
+    L += ["", "## 1. Overview (one row per run)", "",
+         f"| Run | Level | What changed | Ran | Depth (0-{n_stage}) | Δ depth | Crash at | Facts % | Δ facts | Tokens / seed | LLM s / seed |",
          "|---|---|---|---|---|---|---|---|---|---|---|"]
     for i in ids:
         m, x = manifests[i], sums[i]
@@ -433,13 +509,13 @@ HUMAN_CSV = config.ROOT / "human_scores.csv"
 
 
 def version_dirs(exp_id, manifests):
-    """Folders of the versions an experiment is about (v1 of a baseline, the level's version otherwise)."""
+    """Folders of the versions a run is about (v1 of a baseline, the level's version otherwise)."""
     own = "v1" if manifests[exp_id].get("level") == "baseline" else manifests[exp_id].get("level")
-    return sorted(config.EXPERIMENTS_DIR.glob(f"{exp_id}/cases/*/{own}"))
+    return sorted(d for d in (case_path(exp_id, s) / own for s in manifests[exp_id].get("seeds") or []) if d.is_dir())
 
 
 def case_id(d):
-    """The id used in human_scores.csv: the folder relative to experiments/, e.g. B4_strong/cases/s101/v1."""
+    """The id used in human_scores.csv: the folder relative to experiments/, e.g. B4_strong/vanessa_1/s101/v1."""
     return d.relative_to(config.EXPERIMENTS_DIR).as_posix()
 
 
@@ -535,7 +611,7 @@ def _describe(e, full):
 
 def print_trace(exp_id, seed, version=None, full=False):
     """Print the trace of one case, one line per event (full: with prompts and answers)."""
-    path = config.EXPERIMENTS_DIR / exp_id / "cases" / f"s{seed}" / "trace.jsonl"
+    path = case_path(resolve(exp_id), seed) / "trace.jsonl"
     if not path.exists():
         raise SystemExit(f"No trace at {path}")
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -551,7 +627,7 @@ def print_trace(exp_id, seed, version=None, full=False):
 # ---------------------------------------------------------------- main
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", help="only this baseline experiment and its levels")
+    ap.add_argument("--base", help="only this baseline run and its levels, e.g. B4_strong/vanessa_1")
     ap.add_argument("--legacy", action="store_true", help="include migrated old runs in versions.csv")
     ap.add_argument("--trace", nargs=2, metavar=("EXP", "SEED"), help="print one trace as a story, e.g. --trace B4_strong 101")
     ap.add_argument("--version", help="with --trace: only this version, e.g. v1 or 2a")
@@ -579,9 +655,10 @@ if __name__ == "__main__":
 
     manifests, rows = collect(args.legacy)
     if args.run:
-        print_run(args.run[0], int(args.run[1]), manifests)
+        print_run(resolve(args.run[0]), int(args.run[1]), manifests)
         raise SystemExit(0)
     if args.judge or args.judge_code or args.human_template:
+        args.exp = resolve(args.exp) if args.exp else None
         if not args.exp or args.exp not in manifests:
             raise SystemExit("--exp <experiment id> is required (and must exist) for --judge, --judge-code, --human-template")
         if args.human_template:
@@ -597,7 +674,7 @@ if __name__ == "__main__":
     if args.details:
         print_details(rows)
 
-    bases = [args.base] if args.base else sorted(i for i, m in manifests.items()
+    bases = [resolve(args.base)] if args.base else sorted(i for i, m in manifests.items()
                                                  if m.get("level") == "baseline" and m.get("status") != "legacy")
     for b in bases:
         if b not in manifests:

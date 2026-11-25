@@ -34,12 +34,12 @@ def test_step1():
         prompt, schema = s1.build_prompt(use_schema=True)
         assert "{SCHEMA}" not in prompt and "column | dtype" in prompt
         exp = Experiment("E01_test", "baseline", {"generate": s1.PROMPT, "schema": schema}, [101, 102],
-                         data_context="schema", root=tmp)
+                         data_context="schema", person="tester", root=tmp)
 
         r = s1.generate_v1(Case(exp, 101), prompt)
         assert chat.call_args.kwargs["seed"] == 101                      # seed reaches the LLM call
         assert r["error_category"] == "hallucinated_column" and r["code_found"]
-        v1 = exp.dir / "cases" / "s101" / "v1"
+        v1 = exp.dir / "s101" / "v1"
         assert {p.name for p in v1.iterdir()} >= {"response.md", "code.py", "stdout.txt", "stderr.txt",
                                                   "outputs", "result.json"}
         assert (v1 / "code.py").read_text(encoding="utf-8") == "print('report')\n"
@@ -49,7 +49,7 @@ def test_step1():
             r = s1.generate_v1(Case(exp, 102), prompt)
         assert r["error_category"] == "llm_timeout" and exp.is_done(102, "v1")
         kinds = [json.loads(l)["kind"] for l in
-                 (exp.dir / "cases" / "s102" / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
+                 (exp.dir / "s102" / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
         assert kinds == ["version_start", "error", "result"]
 
 

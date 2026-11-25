@@ -50,21 +50,21 @@ def test_step2():
             mock.patch.object(s2, "chat", side_effect=fake_chat) as chat2, \
             mock.patch.object(runner.subprocess, "run", side_effect=docker):
         # baseline with two seeds
-        base = Experiment("E01", "baseline", {"generate": s1.PROMPT}, [101, 102], data_context="blind")
+        base = Experiment("B1", "baseline", {"generate": s1.PROMPT}, [101, 102], data_context="blind", person="tester")
         for seed in base.seeds:
             s1.generate_v1(Case(base, seed), "PROMPT TEXT")
         base.finish()
 
         for level in ("2a", "2b", "2c"):
-            exp = Experiment(f"E_{level}", level, {"critique": s2.CRITIQUE}, [101], base="E01",
-                             data_context="blind")
-            v1 = s2.load_v1("E01", 101)
+            exp = Experiment(f"R_{level}", level, {"critique": s2.CRITIQUE}, [101], base=base.id,
+                             data_context="blind", person="tester")
+            v1 = s2.load_v1(base.id, 101)
             assert v1["answer"] == V1_ANSWER and v1["messages"][0]["content"] == "PROMPT TEXT"
-            r = s2.reflect(Case(exp, 101), "E01", v1, level)
+            r = s2.reflect(Case(exp, 101), base.id, v1, level)
 
-            assert r["parent"] == "E01/s101/v1" and r["version"] == level
+            assert r["parent"] == "B1/tester_1/s101/v1" and r["version"] == level
             assert r["exit_code"] == 0 and r["cost"]["llm_calls"] == 2      # critique + revise
-            d = exp.dir / "cases" / "s101" / level
+            d = exp.dir / "s101" / level
             assert (d / "critique.md").read_text(encoding="utf-8").startswith("- uses")
             feedback = (d / "feedback.md").read_text(encoding="utf-8")
             critique_msg = chat2.call_args_list[-2].args[1][-1]["content"]   # what the critic was asked
@@ -75,13 +75,13 @@ def test_step2():
             assert ("Independent check" in feedback) == (level == "2c")
 
         # the base experiment is not touched by the levels
-        assert not (Path(tmp) / "E01" / "cases" / "s101" / "2a").exists()
+        assert not (base.dir / "s101" / "2a").exists()
 
         # a v1 without an answer cannot be reflected on
         with mock.patch.object(s1, "chat", side_effect=TimeoutError("slow")):
             s1.generate_v1(Case(base, 102), "PROMPT TEXT")
-        assert s2.load_v1("E01", 102) is None
-        assert json.loads((Path(tmp) / "E01" / "cases" / "s102" / "v1" / "result.json")
+        assert s2.load_v1(base.id, 102) is None
+        assert json.loads((base.dir / "s102" / "v1" / "result.json")
                           .read_text(encoding="utf-8"))["error_category"] == "llm_timeout"
 
 

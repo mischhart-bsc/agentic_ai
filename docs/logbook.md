@@ -309,3 +309,15 @@ The consolidation of entry 17 is applied: `report_eval.py`, `analyze_runs.py`, `
   runs are planned only for fine-tuning after the reflection steps. The old series E01-E13 stays untouched as history (the "cut").
 - **Replaces** the earlier plan R1 (repeat the old baseline twice).
 - **Where.** Run log with commands, expected and observed errors: `docs/changes.md`.
+
+### 26. 25 Nov 2026: condition -> run -> seed
+- **Problem.** An experiment id (`B4_strong`) stood for what was tested *and* for one execution of it. A repetition
+  (another day, person or machine) would have needed a new id, and the differences between R2 and R3 (one seed) could
+  not be checked against the spread between repetitions.
+- **Decision.** A layer below the condition: `experiments/<condition>/<person>_<n>/s<seed>/`. `condition.json` holds what
+  must be equal (prompts, schema, shims, model, temperature), `run.json` who ran it where (person from `config.RUNNERS`,
+  machine, model digest, commit, base run). Results are averaged first over the seeds of a run, then over the runs;
+  reflection is compared with its own base run (paired). B1-R3 became `vanessa_1` (`tools/migrate_to_runs.py`, trace and
+  result files unchanged); E14-E21 moved to `experiments/_legacy/`.
+- **Where.** Run log and the decision row: `docs/changes.md` (the active register since 9 Nov 2026). This logbook stays for
+  the history up to entry 25.
