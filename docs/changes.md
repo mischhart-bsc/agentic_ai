@@ -72,13 +72,16 @@ Things we considered and decided, so that the reasons are written down. They hav
 | 2026-11-10 | A prompt hint on dates ("parse with `pd.to_datetime`, compare datetimes only with datetimes, do not type dates by hand") against the date crashes of B4 (s102 datetime vs str, s105 invalid date `2026-02-29`) | **Not made.** The hint was prepared and removed before any run; the file is kept as `prompts/legacy/step1_baseline_v2_dates_not_used.txt` | The sentence would fix only two of three crashes and is written for the errors we saw in this dataset, so a gain would partly be tuning to the test. Date crashes show in the traceback, which is exactly what the reflection step (Step 2) uses. We measure them there: B4 stays the baseline and "B4 + reflection" must fix them itself |
 | 2026-11-10 | Hiding date errors in the shims | **Not made** | Would hide errors instead of fixing them and cannot rescue an invalid date |
 | 2026-11-10 | All-or-nothing scoring of `{year: value}` facts | Replaced by partial credit, see the scoring-change row after B4 | One missing year zeroed the whole fact although the other years were correct (B4 s101) |
-| 2026-11-25 | Repeating a condition: new experiment ids (B4_strong_2) or a layer below the condition | **Layer below the condition**: `experiments/<condition>/<person>_<n>/`, migrated with `tools/migrate_to_runs.py` (B1-R3 -> `vanessa_1`; trace and result files unchanged). `PERFORMANCE_LOG.md` section 0 averages over the seeds of a run, then over the runs | A new id per repetition would split one condition into unrelated rows. With runs, a repetition (other day, other person, other machine) stays under its condition, and the spread between runs shows whether a difference of one seed (R2 -> R3) holds |
+| 2026-11-25 | Repeating a condition: new experiment ids (B4_strong_2) or a layer below the condition | **Layer below the condition**: `experiments/<condition>/<person>_<n>/`, migrated with `tools/migrate_to_runs.py` (B1-R3 -> `vanessa_1`; trace and result files unchanged; the script was removed after use, it is in commit 450b38d). `PERFORMANCE_LOG.md` section 0 averages over the seeds of a run, then over the runs | A new id per repetition would split one condition into unrelated rows. With runs, a repetition (other day, other person, other machine) stays under its condition, and the spread between runs shows whether a difference of one seed (R2 -> R3) holds |
 | 2026-11-10 | Which years count in `flares_per_year` and `pct_strong_per_year`: all six or only full years 2022-2025 | **All six years (2021-2026) count.** No change to the prompt, the ground truth or the checker | The research question asks for Feb 2021 up to and including Feb 2026 and says "use all rows of the file", so 2021 and 2026 are part of the answer. A run that leaves them out (B4 s101, s103) made an error: it filtered on its own. `strong_share_increasing` stays tied to the full years 2022-2025 |
 
 ## Prompts kept
 
 `step1_baseline_v1.txt` (original, B1 to B3), `step1_baseline_v2.txt` (v1 + definition of "strong", B4),
-`prompts/legacy/step1_baseline_v3.txt` (old baseline of the old series, E10) and `prompts/legacy/step1_baseline.txt` (old-series candidate: "strong" + report helper, never run).
+`prompts/legacy/step1_baseline_v3.txt` (old baseline of the old series, E10) and `prompts/legacy/step1_baseline_v4.txt`
+(old series, E18-E21; moved to `legacy/` on 25 Nov 2026). Removed on 25 Nov 2026 together with the
+report helper and `--rerun-from` (both never used in a run): `prompts/legacy/step1_baseline.txt` (candidate with
+`report(key, value)`, never run).
 
 ## Old series: experiments E01-E21 (in the order they were started)
 
@@ -104,7 +107,7 @@ Numbers and scores: `PERFORMANCE_LOG.md` (the folders now live in `experiments/_
 | E15_2a_v3 | 2026-11-01 | 2a | E14 | reflection on E14 |
 | E16_2b_v3 | 2026-11-01 | 2b | E14 | reflection on E14 |
 | E17_2c_v3 | 2026-11-01 | 2c | E14 | reflection on E14 |
-| E18_baseline_v4 | 2026-11-01 | baseline | – | prompt v4 (`prompts/step1_baseline_v4.txt`): v3 + definition of "strong" (M/X) and month by `start_UTC` |
+| E18_baseline_v4 | 2026-11-01 | baseline | – | prompt v4 (`prompts/legacy/step1_baseline_v4.txt`): v3 + definition of "strong" (M/X) and month by `start_UTC` |
 | E19_2a_v4 | 2026-11-01 | 2a | E18 | reflection on E18 |
 | E20_2b_v4 | 2026-11-01 | 2b | E18 | reflection on E18 |
 | E21_2c_v4 | 2026-11-01 | 2c | E18 | reflection on E18 |

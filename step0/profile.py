@@ -1,9 +1,16 @@
 """ 
 File for manual EDA, giving information about the data at hand
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project folder: config.py, src/
+
 import pandas as pd
 
-df = pd.read_csv("data/stix_flarelist.csv", low_memory=False)
+import config  # noqa: E402
+
+df = pd.read_csv(config.DATA_DIR / config.DATA_FILE, low_memory=False)
 
 print(df.shape)
 print(df.dtypes)

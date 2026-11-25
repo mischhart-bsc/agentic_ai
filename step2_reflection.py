@@ -47,7 +47,7 @@ def load_v1(base_id, seed):
     return {"dir": v1_dir, "messages": gen[-1]["messages"], "answer": gen[-1]["response"], "result": result}
 
 
-def reflect(case, base_id, v1, level, shims=False, report_helper=False):
+def reflect(case, base_id, v1, level, shims=False):
     """critique -> revise -> execute -> evaluate for one seed. Returns the result of this level."""
     ver = case.version(level, parent=f"{base_id}/s{case.seed}/v1")
     feedback = build_feedback(level, v1["dir"])
@@ -69,7 +69,7 @@ def reflect(case, base_id, v1, level, shims=False, report_helper=False):
 
     ver.save("response.md", answer)
     code = extract_code(answer)
-    res = run_code(ver, code, shims=shims, report_helper=report_helper) if code is not None else None
+    res = run_code(ver, code, shims=shims) if code is not None else None
     return evaluate_version(ver, code, res)
 
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     prompts = {"critique": CRITIQUE, "revise": REVISE, **prompt_texts(args.level)}
     exp = Experiment(args.exp, args.level, prompts, seeds, base=base_id,
                      data_context=base["data_context"], runner_shims=base.get("runner_shims", False),
-                     report_helper=base.get("report_helper", False), change=args.change, note=args.note,
+                     change=args.change, note=args.note,
                      new_run=args.repeat)
 
     print(f"Experiment {exp.id}: level {args.level} on {base_id}, seeds {exp.seeds}")
@@ -110,8 +110,7 @@ if __name__ == "__main__":
         if v1 is None:
             print(f"s{seed} {args.level}  skipped: v1 of {base_id} has no usable answer")
             continue
-        print(summary_line(reflect(Case(exp, seed), base_id, v1, args.level, shims=exp.manifest["runner_shims"],
-                                  report_helper=exp.manifest["report_helper"])))
+        print(summary_line(reflect(Case(exp, seed), base_id, v1, args.level, shims=exp.manifest["runner_shims"])))
     exp.finish()
     print(f"\nDone: {exp.dir}")
     

@@ -32,12 +32,11 @@ from datetime import datetime
 from pathlib import Path
 
 import config
-from src.runner import REPORT_HELPER, SHIM
+from src.runner import SHIM
 
 # Conditions that must be identical for every run of a condition
-FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts", "runner_shims", "shim_hash",
-                    "report_helper", "report_helper_hash")
-OLD_DEFAULTS = {"runner_shims": False, "shim_hash": None, "report_helper": False, "report_helper_hash": None}      # manifests written before a key existed
+FINGERPRINT_KEYS = ("level", "base", "data_context", "model", "temperature", "max_tokens", "prompts", "runner_shims", "shim_hash")
+OLD_DEFAULTS = {"runner_shims": False, "shim_hash": None}      # manifests written before a key existed
 RUN_NAME = re.compile(r"^([a-z]+)_(\d+)$")
 
 
@@ -168,7 +167,7 @@ class Experiment:
     """One run of a condition. exp.id is the unit id '<condition>/<run>' (it is written into every trace line)."""
 
     def __init__(self, exp_id, level, prompts, seeds, base=None, data_context=None, note="", change="",
-                 runner_shims=False, report_helper=False, person=None, new_run=False, root=None):
+                 runner_shims=False, person=None, new_run=False, root=None):
         """
         exp_id        the condition, e.g. 'R1_2a' (one step + one change)
         level         'baseline', '2a', '2b', '2c', ...
@@ -177,7 +176,6 @@ class Experiment:
         base          the base RUN this one builds on, e.g. 'B4_strong/vanessa_1' (None for a baseline)
         data_context  'blind' or 'schema'
         runner_shims  True if the code ran with SHIM loaded (display, numpy-safe json)
-        report_helper True if the code ran with REPORT_HELPER loaded (report(key, value) writes results.json)
         change        one sentence: what is different from the condition this one is compared with (shown in PERFORMANCE_LOG.md)
         person        who runs it (default: from the machine, see config.RUNNERS)
         new_run       True: start a new run although this person already finished one (--repeat)
@@ -197,8 +195,6 @@ class Experiment:
             "data_context": data_context,
             "runner_shims": bool(runner_shims),
             "shim_hash": sha(SHIM) if runner_shims else None,
-            "report_helper": bool(report_helper),
-            "report_helper_hash": sha(REPORT_HELPER) if report_helper else None,
             "model": config.MODEL,
             "temperature": config.TEMPERATURE,
             "max_tokens": config.MAX_TOKENS,

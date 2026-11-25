@@ -2,10 +2,17 @@
 File for documentation of true facts of the dataset,
 helpful for clearing pitfalls of the LLM regarding the research question
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project folder: config.py, src/
+
 import json
 import pandas as pd
 
-df = pd.read_csv("data/stix_flarelist.csv", low_memory=False)
+import config  # noqa: E402
+
+df = pd.read_csv(config.DATA_DIR / config.DATA_FILE, low_memory=False)
 
 # number of flares per month
 df["start_UTC"] = pd.to_datetime(df["start_UTC"], format="ISO8601")
@@ -46,5 +53,5 @@ facts = {
     "strong_share_increasing_full_years": bool(increasing),
     "pct_strong_per_year_WRONG_goes_time_col": {int(k): float(v) for k, v in pct_wrong.items()},
 }
-with open("ground_truth.json", "w") as f:
+with open(config.ROOT / "ground_truth.json", "w") as f:
     json.dump(facts, f, indent=2)

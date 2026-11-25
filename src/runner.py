@@ -1,8 +1,8 @@
 """Runs Code-Files in a Docker-Container (without network, read-only Files).
 
-run is a trace.Run (old) or a trace.Version (experiments). With a Version the code lands in
-cases/s<seed>/<version>/code.py and the plots in that version's own outputs/, so the plots of v1 and of a
-reflection level never mix.
+run is a trace.Version (experiments) or the old trace.Run (tools/smoke_test.py). With a Version the code lands in
+<condition>/<run>/s<seed>/<version>/code.py and the plots in that version's own outputs/, so the plots of v1 and of
+a reflection level never mix.
 """
 import subprocess
 import config
@@ -10,7 +10,7 @@ from src.trace import timer
 
 
 # Runner helpers ("shims"): this text runs INSIDE the container before the generated code (shims=True). It is a string,
-# not a file, so it needs no extra file and no mount; its hash is stored in the manifest (experiment.json: shim_hash).
+# not a file, so it needs no extra file and no mount; its hash is stored in the manifest (condition.json: shim_hash).
 SHIM = '''"""Runner helpers: imported INSIDE the sandbox before the generated code runs (see src/runner.py, shims=True).
 
 They make the environment behave like a notebook, without touching the model's code (code.py stays exactly as written):
@@ -70,72 +70,19 @@ json.dump = _safe_dump
 '''
 
 
-# Report helper: this text runs INSIDE the container before the generated code (report_helper=True), after the shims.
-# The model calls report("<key>", value); the helper writes /outputs/results.json. So the FORMAT of the results is the
-# environment's job and the model is measured on the analysis only. Its hash is stored in the manifest (report_helper_hash).
-REPORT_HELPER = '''"""Runner helper: report(key, value) records one result in /outputs/results.json.
-
-Imported INSIDE the sandbox before the generated code runs (see src/runner.py, report_helper=True). The model never
-writes the JSON itself, so a format slip (printed dict, missing colon, numpy type) cannot hide a correct analysis.
-EDA_OUTPUTS overrides /outputs (only the tests use it).
-"""
-import builtins
-import json
-import os
-
-import numpy as np
-import pandas as pd
-
-_OUT = os.environ.get("EDA_OUTPUTS", "/outputs")
-_results = {}
-
-
-def _plain(o):
-    """numpy/pandas values -> plain Python, recursively (dict keys included)."""
-    if isinstance(o, np.integer):
-        return int(o)
-    if isinstance(o, np.floating):
-        return float(o)
-    if isinstance(o, np.bool_):
-        return bool(o)
-    if isinstance(o, np.ndarray):
-        return [_plain(v) for v in o.tolist()]
-    if isinstance(o, (pd.Timestamp, pd.Period)):
-        return str(o)
-    if isinstance(o, dict):
-        return {str(_plain(k)): _plain(v) for k, v in o.items()}
-    if isinstance(o, (list, tuple)):
-        return [_plain(v) for v in o]
-    return o
-
-
-def report(key, value):
-    """Record the value of one result; the file is rewritten after every call."""
-    _results[str(key)] = _plain(value)
-    os.makedirs(_OUT, exist_ok=True)
-    with open(os.path.join(_OUT, "results.json"), "w", encoding="utf-8") as f:
-        json.dump(_results, f, indent=1)
-
-
-builtins.report = report
-'''
-
-
-def run_code(run, code: str, shims=False, report_helper=False):
-    """shims=True: the SHIM text of src/runner.py is run before the code (display, numpy-safe json).
-    report_helper=True: REPORT_HELPER is run before it too (report(key, value) -> /outputs/results.json). The code itself is unchanged."""
+def run_code(run, code: str, shims=False):
+    """shims=True: the SHIM text of src/runner.py is run before the code (display, numpy-safe json). The code itself is unchanged."""
     path = run.save_code(code)
     out_dir = run.dir / "outputs"
     cmd = ["docker", "run", "--rm", "--network", "none", "--memory", "2g", "--cpus", "2",
            "-v", f"{config.DATA_DIR.resolve()}:/data:ro",
            "-v", f"{path.parent.resolve()}:/code:ro",
            "-v", f"{out_dir.resolve()}:/outputs"]
-    prelude = (SHIM if shims else "") + (REPORT_HELPER if report_helper else "")
-    if prelude:
-        # one -c program: the helper text(s), then the generated file; runpy keeps the name /code/<file> in tracebacks,
+    if shims:
+        # one -c program: the helper text, then the generated file; runpy keeps the name /code/<file> in tracebacks,
         # so error lines are read the same way as without shims
         cmd += [config.DOCKER_IMAGE, "python", "-c",
-                prelude + f"\nimport runpy\nrunpy.run_path('/code/{path.name}', run_name='__main__')\n"]
+                SHIM + f"\nimport runpy\nrunpy.run_path('/code/{path.name}', run_name='__main__')\n"]
     else:
         cmd += [config.DOCKER_IMAGE, "python", f"/code/{path.name}"]
     t = timer()
@@ -146,7 +93,7 @@ def run_code(run, code: str, shims=False, report_helper=False):
         stdout, stderr, code_ = p.stdout, p.stderr, p.returncode
     except subprocess.TimeoutExpired:
         stdout, stderr, code_ = "", f"TIMEOUT after {config.EXEC_TIMEOUT_S}s", -1
-    result = {"file": path.name, "shims": shims, "report_helper": report_helper, "exit_code": code_, "seconds": t(),
+    result = {"file": path.name, "shims": shims, "exit_code": code_, "seconds": t(),
               "stdout": stdout[-5000:], "stderr": stderr[-5000:]}
     run.log("exec", **result)
     return result

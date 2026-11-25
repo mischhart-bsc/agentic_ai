@@ -60,7 +60,7 @@ def unit_ids(legacy=False):
     for d in sorted(root.glob("*")):
         if (d / "condition.json").exists():
             ids += [f"{d.name}/{r}" for r in runs_of(d.name)]
-        elif (d / "experiment.json").exists():          # flat experiment (before tools/migrate_to_runs.py)
+        elif (d / "experiment.json").exists():          # flat experiment (layout before 25 Nov 2026)
             ids.append(d.name)
     if legacy:
         ids += [d.name for d in sorted((root / "_legacy").glob("*")) if (d / "experiment.json").exists()]
@@ -422,8 +422,7 @@ def write_performance_log(manifests, rows):
          f"How to read: **depth** = how many funnel stages in a row a run passed (0-{n_stage}); a crash early gives a low depth, "
          "a wrong number at the end still gives a high one. **facts** = share of the 7 requested values that match "
          "`ground_truth.json`. **Δ** = difference of the mean against the reference experiment named in the cell.", "",
-         "Shims = runner helpers (`SHIM` in `src/runner.py`: `display`, numpy-safe JSON). Rerun experiments execute the code of another experiment again "
-         "(no LLM call, so tokens are 0).", "",
+         "Shims = runner helpers (`SHIM` in `src/runner.py`: `display`, numpy-safe JSON).", "",
          "Funnel stages: " + " → ".join(f"`{k}`" for k in FUNNEL), ""]
     L += condition_overview(ids, manifests, sums)
     L += ["", "## 1. Overview (one row per run)", "",

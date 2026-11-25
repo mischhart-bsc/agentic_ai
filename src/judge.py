@@ -9,7 +9,7 @@ Steps, following the checklist (evaluation framework):
   5. Adjust the prompt until judge and human agree well enough.
 
 The judge does not rate plots (yet): qwen3 cannot read images. That would need a vision model
-in Ollama (e.g. qwen2.5vl or gemma3) -> judge_plots() is a placeholder.
+in Ollama (e.g. qwen2.5vl or gemma3).
 """
 import json
 import re
@@ -137,11 +137,6 @@ def judge_report(run_dir, report):
         (run_dir / "judge.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
         return result
     return {"model": JUDGE_MODEL, "scores": None, "error": "unparseable judge answer"}
-
-
-def judge_plots(run_dir):
-    """Placeholder: rating plots needs a vision model (e.g. ollama pull qwen2.5vl)."""
-    raise NotImplementedError("Plot judge not active yet - needs a vision model.")
 
 
 # ---------------------------------------------------------------- Human vs. judge

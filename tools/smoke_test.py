@@ -1,5 +1,10 @@
 """End-to-end-test: LLM writes Code -> Docker runs it -> Trace."""
 import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project folder: config.py, src/
+
 from src.trace import Run
 from src.llm import chat
 from src.runner import run_code
