@@ -1,0 +1,21 @@
+{
+  "person": "mischa",
+  "base_run": "B4_strong/mischa_1",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "model_digest": "8b939f12b0f9",
+  "llm_max_seconds": 600,
+  "git_commit": "95f0c98",
+  "git_dirty": false,
+  "machine": "Surface-Mischa (Windows, 12 CPUs)",
+  "ollama_url": "http://localhost:11434/v1",
+  "docker_image": "agai-sandbox",
+  "started": "2026-11-25T17:14:29",
+  "finished": null,
+  "status": "running"
+}

@@ -1,0 +1,20 @@
+- The data starts in February 2021 and goes up to February 2026, but the code only analyzes from 2021 to 2025 (as per the flares_per_year dictionary), and does not include 2026 — this violates the requirement to analyze up to and including February 2026.
+- The research question asks for the monthly number of flares from February 2021 to February 2026, but the code aggregates by year and month only for years 2021–2025, missing the full 2026 period.
+- The "busiest_month" is determined from all months across years, but the data only includes flares from 2021 to 2025, and the busiest month is incorrectly inferred as "February 2025" when the data does not extend to 2026.
+- The calculation of "pct_strong_per_year" uses only years 2021–2025, but the requirement is to evaluate changes from 2022 to 2025 — the code includes 2021 but does not properly handle the 2022–2025 range or validate that the share increases across those years.
+- The "strong_share_increasing" flag is computed based on a list of years (2021–2025), but the requirement is specifically for the years 2022–2025. The code fails to correctly evaluate the trend only over these years.
+- The variable `years_list` is defined from `strong_per_year.keys()`, which may include 2021, and thus the comparison starts from 2021, violating the scope of the required analysis (only 2022–2025).
+- The code does not validate that the data actually contains entries for all years from 2021 to 2026 — if there are no flares in 2026, the monthly counts would be zero, and the analysis would be incomplete.
+- The `goes_estimated_mean_class` column is assumed to be strings, but no validation is performed for missing or malformed values, and the `str.startswith('M') | str.startswith('X')` could fail if the column is null or not string.
+- The creation of `month_label` uses `f"{year}-{month:02d}"`, which is correct, but the plotting logic does not properly handle missing months (e.g., missing Jan in a year) — the plot shows all months, which may misrepresent data.
+- The `flares_per_year` dictionary is built from `df.groupby('year').size()`, which may not include 2026 — thus, the final result is incomplete and inaccurate.
+- The code does not check if the `goes_estimated_mean_class` column has any missing values, and thus the `is_strong` flag could produce incorrect results due to NaNs.
+- The `pct_strong_per_year` calculation is done with `strong / flares_per_year.get(year, 0)`, which may result in division by zero if there are no flares in a year — no error protection is in place.
+- The final JSON output uses `results_json` with keys that are not in plain Python types — the `pct_strong_per_year` is a dict, which is fine, but the structure is correct only if the years are properly filtered.
+- The requirement says "use all rows of the file" — the code does, but it fails to include data from 2026.
+- The plot saves to /outputs/monthly_flare_counts.png, which is correct, but the data used to generate it is incomplete (only 2021–2025), violating the scope of the analysis.
+- The report text includes claims about "a growing intensity" and "a trend" without statistical support — it is descriptive but not backed by actual trend analysis.
+- The final `RESULTS_JSON` includes a key "strong_share_increasing" that is computed over 2021–2025, but the requirement is only for 2022–2025 — this is a direct violation.
+- The code does not filter or validate the years to only include 2022–2025 for the strong flare trend analysis — it incorrectly uses 2021 as a baseline.
+
+In summary: the code fails to meet the core requirement of analyzing the period from February 2021 to February 2026, and particularly fails to evaluate the strong flare share trend only from 2022 to 2025. It includes invalid data years and computes incorrect trends. It also lacks validation and error handling for missing or malformed data.
