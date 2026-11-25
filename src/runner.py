@@ -1,8 +1,7 @@
 """Runs Code-Files in a Docker-Container (without network, read-only Files).
 
-run is a trace.Version (experiments) or the old trace.Run (tools/smoke_test.py). With a Version the code lands in
-<condition>/<run>/s<seed>/<version>/code.py and the plots in that version's own outputs/, so the plots of v1 and of
-a reflection level never mix.
+run is a trace.Version: the code lands in <condition>/<run>/s<seed>/<version>/code.py and the plots in that
+version's own outputs/, so the plots of v1 and of a reflection level never mix.
 """
 import subprocess
 import config

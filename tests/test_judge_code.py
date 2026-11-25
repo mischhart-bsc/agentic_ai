@@ -37,6 +37,33 @@ def test_judge_code():
         assert last_code(tmp) == "new"
 
 
+def test_judges_use_llm_chat():
+    """Both judges go through src/llm.chat (time limit), at temperature 0; a failed call is an error, not a crash."""
+    from unittest import mock
+    from src import judge
+    from src.judge_code import judge_code
+    answer = json.dumps({**{c: 4 for c in CRITERIA}, "justification": "ok"})
+
+    def fake_chat(log, messages, label="", **kw):
+        log.log("llm", label=label, response=answer)
+        return answer
+
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / "code.py").write_text("print(1)", encoding="utf-8")
+        with mock.patch.object(judge, "chat", side_effect=fake_chat) as chat:
+            r = judge_code(tmp)
+        assert chat.call_args.kwargs["temperature"] == 0.0 and chat.call_args.kwargs["model"] == judge.JUDGE_MODEL
+        assert r["mean"] == 4.0 and json.loads((Path(tmp) / "judge_code.json").read_text(encoding="utf-8"))["mean"] == 4.0
+        kinds = [json.loads(l)["kind"] for l in (Path(tmp) / "judge_code.jsonl").read_text(encoding="utf-8").splitlines()]
+        assert kinds == ["llm", "scores"]
+
+        with mock.patch.object(judge, "chat", side_effect=TimeoutError("LLM call exceeded 600s")):
+            r = judge.judge_report(tmp, "Some report text.")
+        assert r["scores"] is None and r["error"].startswith("TimeoutError")
+        assert not (Path(tmp) / "judge.json").exists()
+
+
 if __name__ == "__main__":
     test_judge_code()
+    test_judges_use_llm_chat()
     print("OK - code judge offline checks passed")

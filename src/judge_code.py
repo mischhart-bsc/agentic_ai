@@ -4,15 +4,13 @@ The report judge (src/judge.py) rates the final text. This one rates a single st
 the Python script the model wrote. It judges the code as written and NOT whether it crashed
 (exit code is measured separately, objectively), so both metrics stay independent.
 
-Run via:  python analyze.py --exp <id> --judge-code
-Writes runs/<id>/judge_code.json (+ judge_code.jsonl as log). Reuses model, temperature and parser of src/judge.py.
+Run via:  python analyze.py --exp <run id> --judge-code
+Writes judge_code.json (+ judge_code.jsonl as log) into each version folder, e.g. B4_strong/vanessa_1/s101/v1/.
+Reuses model, temperature, parser and the call (src/llm.chat with its time limit) of src/judge.py.
 """
-import json
-from datetime import datetime
 from pathlib import Path
 
-import config
-from src.judge import JUDGE_MODEL, JUDGE_TEMPERATURE, parse_scores
+from src.judge import ask_judge
 
 # Scale 1-5 for all criteria. The level descriptions are part of the prompt.
 RUBRIC = {
@@ -91,27 +89,8 @@ def last_code(run_dir):
 
 
 def judge_code(run_dir):
-    """Rate the generated code of one run -> runs/<id>/judge_code.json."""
-    from openai import OpenAI   # imported here so the rest works without Ollama
-
-    run_dir = Path(run_dir)
+    """Rate the generated code of one version folder -> <version folder>/judge_code.json."""
     code = last_code(run_dir)
     if not code:
         return None
-    client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=900, max_retries=0)
-    messages = build_messages(code)
-    resp = client.chat.completions.create(model=JUDGE_MODEL, messages=messages,
-                                          temperature=JUDGE_TEMPERATURE, max_tokens=600)
-    text = resp.choices[0].message.content or ""
-    scores = parse_scores(text, CRITERIA)
-    entry = {"time": datetime.now().isoformat(timespec="seconds"), "model": JUDGE_MODEL,
-             "prompt_tokens": resp.usage.prompt_tokens, "completion_tokens": resp.usage.completion_tokens,
-             "messages": messages, "response": text, "scores": scores}
-    with open(run_dir / "judge_code.jsonl", "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    if scores is None:
-        return {"model": JUDGE_MODEL, "scores": None, "error": "unparseable judge answer"}
-    mean = round(sum(scores[c] for c in CRITERIA) / len(CRITERIA), 2)
-    result = {"model": JUDGE_MODEL, "scores": scores, "mean": mean, "score_0_1": round((mean - 1) / 4, 3)}
-    (run_dir / "judge_code.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    return result
+    return ask_judge(run_dir, "judge_code", build_messages(code), CRITERIA)

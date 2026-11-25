@@ -15,8 +15,11 @@ from src.trace import timer
 client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=300, max_retries=0)  # key is ignored
 
 
-def chat(run, messages, label="llm_call", max_tokens=None, **kw):
-    """run: trace.Run or trace.Version (anything with .log). kw goes to the API, e.g. seed=101."""
+def chat(run, messages, label="llm_call", max_tokens=None, model=None, temperature=None, **kw):
+    """run: a trace.Version (anything with .log). kw goes to the API, e.g. seed=101.
+    model / temperature: only for calls that are not part of an experiment (the judges); default from config."""
+    model = model or config.MODEL
+    temperature = config.TEMPERATURE if temperature is None else temperature
     t = timer()
     parts = []
     state = {"stream": None, "usage": None, "finish": None, "error": None}
@@ -24,8 +27,8 @@ def chat(run, messages, label="llm_call", max_tokens=None, **kw):
     def consume():
         try:
             state["stream"] = client.chat.completions.create(
-                model=config.MODEL, messages=messages,
-                temperature=config.TEMPERATURE, max_tokens=max_tokens or config.MAX_TOKENS,
+                model=model, messages=messages,
+                temperature=temperature, max_tokens=max_tokens or config.MAX_TOKENS,
                 stream=True, stream_options={"include_usage": True}, **kw)
             for chunk in state["stream"]:
                 if chunk.usage:
@@ -47,7 +50,7 @@ def chat(run, messages, label="llm_call", max_tokens=None, **kw):
 
     text = "".join(parts)
     usage = state["usage"]
-    run.log("llm", label=label, model=config.MODEL, seed=kw.get("seed"), seconds=t(),
+    run.log("llm", label=label, model=model, seed=kw.get("seed"), seconds=t(),
             finish_reason=state["finish"],
             prompt_tokens=usage.prompt_tokens if usage else None,
             completion_tokens=usage.completion_tokens if usage else len(parts),

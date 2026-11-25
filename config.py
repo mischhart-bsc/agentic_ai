@@ -15,7 +15,6 @@ EXEC_TIMEOUT_S = 120                        # generated Code will get cancelled 
 # --- Pfade ---
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
-RUNS_DIR = ROOT / "runs"
 EXPERIMENTS_DIR = ROOT / "experiments"      # one folder per experiment
 DATA_FILE = "stix_flarelist.csv"            # lies in data/, in Container under /data/
 

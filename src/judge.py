@@ -18,6 +18,7 @@ from pathlib import Path
 
 import config
 from src.checker import GT
+from src.llm import chat
 
 JUDGE_MODEL = getattr(config, "JUDGE_MODEL", config.MODEL)
 JUDGE_TEMPERATURE = 0.0
@@ -111,32 +112,44 @@ def parse_scores(text, criteria=CRITERIA):
     return out
 
 
+class JsonlLog:
+    """Where src/llm.chat writes its log line for a judge call: one JSON line per event in a .jsonl file."""
+
+    def __init__(self, path):
+        self.path = Path(path)
+
+    def log(self, kind, **fields):
+        entry = {"time": datetime.now().isoformat(timespec="seconds"), "kind": kind, **fields}
+        with open(self.path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def ask_judge(run_dir, name, messages, criteria):
+    """One judge call through src/llm.chat (hard time limit LLM_MAX_SECONDS, temperature 0).
+    Logs to <run_dir>/<name>.jsonl, writes <run_dir>/<name>.json if the answer can be read.
+    A failed call (timeout, Ollama down) is returned as an error instead of stopping all other ratings."""
+    run_dir = Path(run_dir)
+    log = JsonlLog(run_dir / f"{name}.jsonl")
+    try:
+        text = chat(log, messages, label=name, max_tokens=600, model=JUDGE_MODEL, temperature=JUDGE_TEMPERATURE)
+    except Exception as e:                                     # noqa: BLE001
+        log.log("error", error_type=type(e).__name__, error=str(e))
+        return {"model": JUDGE_MODEL, "scores": None, "error": f"{type(e).__name__}: {e}"}
+    scores = parse_scores(text, criteria)
+    log.log("scores", scores=scores)
+    if scores is None:
+        return {"model": JUDGE_MODEL, "scores": None, "error": "unparseable judge answer"}
+    mean = round(sum(scores[c] for c in criteria) / len(criteria), 2)
+    result = {"model": JUDGE_MODEL, "scores": scores, "mean": mean, "score_0_1": round((mean - 1) / 4, 3)}
+    (run_dir / f"{name}.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    return result
+
+
 def judge_report(run_dir, report):
     """Rate a report with the LLM. Result -> <run_dir>/judge.json (+ judge.jsonl as log)."""
-    from openai import OpenAI   # import here so the rest works without Ollama
-
-    run_dir = Path(run_dir)
     if not report.strip():
         return None
-    client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama", timeout=900, max_retries=0)
-    messages = build_messages(report)
-    resp = client.chat.completions.create(model=JUDGE_MODEL, messages=messages,
-                                          temperature=JUDGE_TEMPERATURE, max_tokens=600)
-    text = resp.choices[0].message.content or ""
-    scores = parse_scores(text)
-    entry = {"time": datetime.now().isoformat(timespec="seconds"), "model": JUDGE_MODEL,
-             "prompt_tokens": resp.usage.prompt_tokens,
-             "completion_tokens": resp.usage.completion_tokens,
-             "messages": messages, "response": text, "scores": scores}
-    with open(run_dir / "judge.jsonl", "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    if scores is not None:
-        mean = round(sum(scores[c] for c in CRITERIA) / len(CRITERIA), 2)
-        result = {"model": JUDGE_MODEL, "scores": scores, "mean": mean,
-                  "score_0_1": round((mean - 1) / 4, 3)}
-        (run_dir / "judge.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-        return result
-    return {"model": JUDGE_MODEL, "scores": None, "error": "unparseable judge answer"}
+    return ask_judge(run_dir, "judge", build_messages(report), CRITERIA)
 
 
 # ---------------------------------------------------------------- Human vs. judge

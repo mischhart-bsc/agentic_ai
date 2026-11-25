@@ -1,10 +1,10 @@
 # Agentic AI – Setup
-1. Start Docker Desktop, install Ollama, `ollama pull qwen3:4b-instruct`
+1. Start Docker Desktop, install Ollama, `ollama pull qwen3:4b-instruct-2507-q4_K_M`   (Qwen3-4B-Instruct-2507, 4-bit; pinned, not the moving tag `qwen3:4b-instruct`)
 2. `ollama create qwen3-4b-instruct-16k -f Modelfile`   (= qwen3 instruct with 16k context)
 3. `python -m venv .venv` and activate, `pip install -r requirements.txt`
 4. `docker build -t agai-sandbox sandbox/`
 5. `python tools/get_data.py`
-6. `python tools/smoke_test.py`  -> output + `runs/<date>_<time>_smoke_<id>/trace.jsonl` (setup check only: Ollama -> Docker -> data; `runs/` is not tracked by git)
+6. `python tools/smoke_test.py`  -> exit 0, `(33076, 40)` and the trace (setup check only: Ollama -> Docker -> data; runs in a temporary folder, nothing is kept)
 
 Docker Desktop and Ollama must both be running for every experiment.
 
@@ -94,7 +94,7 @@ the version folders for code, output, plots and `result.json`.
 |---|---|
 | `config.py` | model, temperature, limits, paths, `RUNNERS` (machine -> person) |
 | `src/experiment.py` | condition (`condition.json`) and run (`run.json`), resume and `--repeat`, `resolve`/`load` of a run id |
-| `src/trace.py` | `Case` (one seed) and `Version` (one code version); `Run` only for `tools/smoke_test.py` |
+| `src/trace.py` | `Case` (one seed) and `Version` (one code version), the trace of a case |
 | `src/llm.py` | Ollama call with a hard wall-clock limit (`LLM_MAX_SECONDS`), seed passed through |
 | `src/evaluate.py` | one evaluation for every step: checker facts, error category, funnel, report quality (5 dimensions), cost, `notebook.ipynb` |
 | `src/feedback.py` | what the critic sees per reflection level |
