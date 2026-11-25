@@ -12,6 +12,8 @@ Run:  python step2_reflection.py --exp R1_2a --level 2a --base B4_strong --chang
       python step2_reflection.py --exp R2_2b --level 2b --base B4_strong --change "..."
       python step2_reflection.py --exp R3_2c --level 2c --base B4_strong --change "..."
       (seeds default to all seeds of the base; same command again = resume your unfinished run)
+      python step2_reflection.py --exp R2_2b --base B4_strong/jan_1 --repeat
+      (a further run of an existing condition: --level and the prompts come from the condition)
 
 --base is a RUN, because a reflection reflects on exactly its frozen v1s: --base B4_strong/vanessa_1.
 If the condition has only one run, --base B4_strong is enough. --repeat starts a further run (<person>_<n+1>).
@@ -76,7 +78,7 @@ def reflect(case, base_id, v1, level, shims=False):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--exp", required=True, help="experiment id, e.g. R1_2a")
-    ap.add_argument("--level", required=True, choices=LEVELS)
+    ap.add_argument("--level", choices=LEVELS, help="not needed for an existing condition (taken from it)")
     ap.add_argument("--base", required=True, help="baseline run whose v1 is reflected on, e.g. B4_strong/vanessa_1")
     ap.add_argument("--seeds", help="default: all seeds of the base, e.g. 101-105")
     ap.add_argument("--change", default="", help="what is different from the experiment you compare with (required for a new experiment)")
@@ -85,6 +87,14 @@ if __name__ == "__main__":
     args = ap.parse_args()
     if change_missing(args.exp, args.change):
         ap.error("--change is required for a new experiment: one sentence on what is different from the one you compare with")
+    cond_file = config.EXPERIMENTS_DIR / args.exp / "condition.json"
+    if cond_file.exists():
+        level = json.loads(cond_file.read_text(encoding="utf-8"))["level"]
+        if args.level and args.level != level:
+            ap.error(f"{args.exp} is level {level}, not {args.level}")
+        args.level = level
+    elif not args.level:
+        ap.error("--level is required for a new condition")
 
     base_id = resolve(args.base)                      # a run, e.g. B4_strong/vanessa_1
     base = load(base_id)

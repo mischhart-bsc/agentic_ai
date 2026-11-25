@@ -7,12 +7,14 @@ Run:  python step1_baseline.py --exp B4_strong --prompt step1_baseline_v2 --sche
        old-series prompts are in prompts/legacy/, e.g. --prompt legacy/step1_baseline_v3. --shims = run with the SHIM of src/runner.py)
       python step1_baseline.py --exp B1_original_prompt --prompt step1_baseline_v1 --seeds 101-105 --change "..."
       (same command again = resume your unfinished run: seeds that already have a result are skipped)
-      python step1_baseline.py --exp B4_strong ... --repeat
-      (a further run of a condition you already ran: B4_strong/mischa_1 exists -> B4_strong/mischa_2)
+      python step1_baseline.py --exp B4_strong --repeat
+      (a further run of an existing condition: prompt, schema and shims are taken from its condition.json, so the run
+       is guaranteed to have the same conditions; B4_strong/mischa_1 exists -> B4_strong/mischa_2)
 
 Every run lands in experiments/<exp>/<person>_<n>/ (person from config.RUNNERS); --change only for a new condition.
 """
 import argparse
+import json
 import re
 
 import config
@@ -67,7 +69,8 @@ if __name__ == "__main__":
     ap.add_argument("--exp", required=True, help="experiment id, e.g. B4_strong")
     ap.add_argument("--schema", action="store_true", help="column names + example values in the prompt")
     ap.add_argument("--seeds", default="101-105", help="e.g. 101-105 or 101,103")
-    ap.add_argument("--prompt", required=True, help="prompt file in prompts/ (without .txt), e.g. step1_baseline_v1")
+    ap.add_argument("--prompt", help="prompt file in prompts/ (without .txt), e.g. step1_baseline_v1; "
+                                     "not needed for an existing condition (taken from it)")
     ap.add_argument("--shims", action="store_true", help="run the code with SHIM loaded (display, numpy-safe json)")
     ap.add_argument("--change", default="", help="what is different from the experiment you compare with (required for a new experiment)")
     ap.add_argument("--note", default="", help="free text for the manifest")
@@ -76,7 +79,16 @@ if __name__ == "__main__":
     if change_missing(args.exp, args.change):
         ap.error("--change is required for a new experiment: one sentence on what is different from the one you compare with")
 
-    template = load_prompt(args.prompt)
+    cond_file = config.EXPERIMENTS_DIR / args.exp / "condition.json"
+    if cond_file.exists() and not args.prompt:
+        # an existing condition: take prompt, schema and shims from it, so a repetition cannot differ by accident
+        cond = json.loads(cond_file.read_text(encoding="utf-8"))
+        template = (cond_file.parent / "prompts" / "generate.txt").read_text(encoding="utf-8")
+        args.schema, args.shims = cond["data_context"] == "schema", bool(cond.get("runner_shims"))
+    elif not args.prompt:
+        ap.error("--prompt is required for a new condition")
+    else:
+        template = load_prompt(args.prompt)
     prompt, schema = build_prompt(args.schema, template)
     prompts = {"generate": template, **({"schema": schema} if schema else {})}
     try:

@@ -17,8 +17,14 @@ Run:  python analyze.py                          all experiments; comparison for
       python analyze.py --base B4_strong/vanessa_1   only this baseline run and the levels built on it
       python analyze.py --legacy                 also include experiments/_legacy (migrated old runs)
 
+Success score (0-100): one comparable number per seed, run and condition, a weighted sum of facts (strict and
+partial), finished runs, funnel depth and report quality (src/metrics.py: SCORE_WEIGHTS). Cost is reported next to it.
+
 Writes:
-  results/versions.csv                  one row per version (experiment, seed, version, exit, error, facts, cost)
+  results/versions.csv                  one row per version (experiment, seed, version, exit, error, facts, score, cost)
+  results/runs.csv                      one row per run: mean and sd over its seeds of every metric, delta vs. its base run
+  results/conditions.csv                one row per condition: mean of the run means, sd between runs, paired delta
+  results/figures/*.png                 the figures of src/figures.py (score per level, transitions, funnel, facts, cost)
   PERFORMANCE_LOG.md                    one row per experiment: what changed, funnel, facts, cost, conditions
   results/comparison_<base run>.html    table seed x level, transitions vs. v1, means and cost per level
 
@@ -42,6 +48,8 @@ import config
 from src.checker import KEYS, report_precision
 from src.evaluate import FUNNEL, WEIGHTS, facts_for_dir, funnel_for_dir, report_quality_for_dir
 from src.experiment import case_path, load, resolve, runs_of, unit_dir
+from src.metrics import COMPONENTS, RUN_METRICS, SCORE_WEIGHTS, condition_summary, infra, ran, run_summary, \
+    seed_metrics, transition
 
 RESULTS_DIR = config.ROOT / "results"
 TEXT_KEYS = ["n_months", "busiest_month", "busiest_month_count", "n_strong", "strong_share_increasing"]   # readable from prose
@@ -49,7 +57,7 @@ COLUMNS = ["experiment", "condition", "run", "person", "base", "level", "data_co
            "exit_code", "error_category", "error_line", "results_json_found", "fact_score", "fact_score_partial", "n_plots",
            "llm_calls", "prompt_tokens", "completion_tokens", "llm_seconds", "exec_seconds", "truncated",
            "funnel_depth", "crash_pos", "report_precision", "report_overall", *[f"rep_{d}" for d in WEIGHTS], "report_flags", "text_fact_score", *[f"text_{k}" for k in TEXT_KEYS],
-           *[f"fact_{k}" for k in KEYS], *FUNNEL]
+           *[f"fact_{k}" for k in KEYS], *FUNNEL, "score", *[f"score_{c}" for c in COMPONENTS]]
 
 
 # ---------------------------------------------------------------- collect
@@ -106,7 +114,66 @@ def collect(legacy=False):
                 **{f"fact_{k}": (r.get("checks") or {}).get(k) for k in KEYS}, **fn["stages"],
                 "path": str(res_file.parent),
             })
+            sm = seed_metrics(rows[-1])
+            rows[-1].update({"score": sm["score"], **{f"score_{c}": sm[c] for c in COMPONENTS}})
     return manifests, rows
+
+
+def summaries(manifests, rows):
+    """(runs, conds, order): run_summary per run (stage 1), condition_summary per condition (stage 2).
+    runs[unit id]  = {condition, run, person, level, base, sum}
+    conds[cond]    = {level, base_condition, runs: [unit ids], sum}
+    order          = conditions in the order their first run started"""
+    own = {}
+    for r in rows:
+        lv = manifests[r["experiment"]].get("level")
+        if r["version"] == ("v1" if lv == "baseline" else lv):
+            own.setdefault(r["experiment"], []).append(r)
+    runs, conds = {}, {}
+    for uid in sorted(manifests, key=lambda u: manifests[u].get("started") or ""):
+        m = manifests[uid]
+        if not own.get(uid):
+            continue
+        base = m.get("base")
+        runs[uid] = {"condition": m.get("condition") or uid, "run": m.get("run"), "person": m.get("person"),
+                     "level": m.get("level"), "base": base,
+                     "sum": run_summary(own[uid], own.get(base) if base else None)}
+        c = conds.setdefault(runs[uid]["condition"], {"level": m.get("level"), "runs": [],
+                                                      "base_condition": m.get("base_condition") or
+                                                      (base.split("/")[0] if base else None)})
+        c["runs"].append(uid)
+    for c in conds.values():
+        c["sum"] = condition_summary([runs[u]["sum"] for u in c["runs"]])
+    return runs, conds, list(conds)
+
+
+def write_summary_csvs(runs, conds):
+    """results/runs.csv (stage 1) and results/conditions.csv (stage 2): every metric, nothing summarised away."""
+    RESULTS_DIR.mkdir(exist_ok=True)
+    with open(RESULTS_DIR / "runs.csv", "w", newline="", encoding="utf-8") as f:
+        cols = ["run", "condition", "person", "level", "base_run", "n", "infra", *[x for k in RUN_METRICS for x in (k, f"{k}_sd")],
+                *[f"delta_{k}" for k in RUN_METRICS], *[f"trans_{t}" for t in ("fixed", "still_ok", "swapped", "same_error", "broken", "infra")]]
+        w = csv.writer(f)
+        w.writerow(cols)
+        for uid, x in runs.items():
+            s, t = x["sum"], x["sum"]["transitions"] or {}
+            w.writerow([uid, x["condition"], x["person"], x["level"], x["base"], s["n"], s["infra"],
+                        *[v for k in RUN_METRICS for v in (s[k], s[f"{k}_sd"])],
+                        *[(s.get("delta") or {}).get(k) for k in RUN_METRICS],
+                        *[t.get(k, 0) if x["sum"]["transitions"] is not None else "" for k in
+                          ("fixed", "still_ok", "swapped", "same_error", "broken", "infra")]])
+    with open(RESULTS_DIR / "conditions.csv", "w", newline="", encoding="utf-8") as f:
+        cols = ["condition", "level", "base_condition", "runs", "n", "infra",
+                *[x for k in RUN_METRICS for x in (k, f"{k}_sd_runs", f"{k}_sd_seeds", f"{k}_delta", f"{k}_delta_sd")],
+                "score_per_1k_tokens"]
+        w = csv.writer(f)
+        w.writerow(cols)
+        for cond, c in conds.items():
+            s = c["sum"]
+            w.writerow([cond, c["level"], c["base_condition"], " ".join(x.split("/")[-1] for x in c["runs"]), s["n"], s["infra"],
+                        *[s[x] for k in RUN_METRICS for x in (k, f"{k}_sd_runs", f"{k}_sd_seeds", f"{k}_delta", f"{k}_delta_sd")],
+                        s["score_per_1k_tokens"]])
+    return RESULTS_DIR / "runs.csv", RESULTS_DIR / "conditions.csv"
 
 
 def write_csv(rows):
@@ -120,27 +187,7 @@ def write_csv(rows):
 
 
 # ---------------------------------------------------------------- compare
-def ran(r):
-    return r is not None and r["exit_code"] == 0
-
-
-def infra(r):
-    """Failures that are not the model's fault (Docker down, LLM timeout): excluded from transitions."""
-    return r is not None and (r["error_category"] in ("infra_docker", "llm_timeout", "llm_error"))
-
-
-def transition(v1, lv):
-    if v1 is None or lv is None:
-        return None
-    if infra(v1) or infra(lv):
-        return "infra"
-    if ran(v1) and ran(lv):
-        return "still_ok"
-    if ran(lv):
-        return "fixed"
-    if ran(v1):
-        return "broken"
-    return "same_error" if v1["error_category"] == lv["error_category"] else "swapped"
+# ran(), infra(), transition(): src/metrics.py
 
 
 def comparison(base_id, manifests, rows):
@@ -360,50 +407,53 @@ def short(unit_id):
     return f"{cond.split('_')[0]}/{run}" if run else cond.split("_")[0]
 
 
-def _run_means(ids, sums, key):
-    """{unit id: mean over its seeds} for the runs that have values for key."""
-    return {i: mean(sums[i][key]) for i in ids if sums[i][key]}
+def _v(x, fmt="{:.1f}"):
+    return "–" if x is None else fmt.format(x)
 
 
-def condition_overview(ids, manifests, sums):
-    """Section 0: one row per condition. Stage 1: mean over the seeds of each run. Stage 2: mean of the run means.
-    sd runs = spread of the run means (needs 2+ runs); sd seeds = mean spread over the seeds inside a run.
-    Delta vs base (paired): each reflection run minus the base run it reflected on, averaged over the runs."""
-    conds = {}
-    for i in ids:
-        conds.setdefault(manifests[i].get("condition") or i, []).append(i)
-    L = ["## 0. Per condition (two-stage mean over runs)", "",
-         "Stage 1: mean over the 5 seeds of a run. Stage 2: mean of these run means (every run weighs the same). "
-         "**sd runs** = spread between the run means (shows whether a repetition gives the same result; needs 2+ runs). "
-         "**sd seeds** = mean spread over the seeds inside a run. **Δ facts (paired)**: every reflection run minus "
-         "the base run it reflected on, averaged over the runs.", "",
-         "| Condition | Level | Runs | Ran % | Depth | Facts % | sd runs | sd seeds | Δ facts (paired) | Tokens / seed |",
-         "|---|---|---|---|---|---|---|---|---|---|"]
-    for cond, members in conds.items():
-        done = [i for i in members if sums[i]["n"]]
-        m = manifests[members[0]]
-        if not done:
-            L.append(f"| {cond} | {m.get('level')} | {', '.join(manifests[i].get('run') or '–' for i in members)} | "
-                     "no results yet | | | | | | |")
-            continue
-        ran = [100 * sums[i]["ran"] / (sums[i]["n"] - sums[i]["infra"]) for i in done if sums[i]["n"] - sums[i]["infra"]]
-        facts = _run_means(done, sums, "facts")
-        depth = _run_means(done, sums, "depth")
-        within = [pstdev(sums[i]["facts"]) for i in done if len(sums[i]["facts"]) > 1]
-        paired = [facts[i] - mean(sums[b]["facts"]) for i in facts
-                  for b in [manifests[i].get("base")] if b in sums and sums[b]["facts"]]
-
-        def fmt(xs, f):
-            return "–" if not xs else f.format(mean(xs))
-        sd_runs = f"{pstdev(facts.values()):.1f}" if len(facts) > 1 else "– (1 run)"
-        L.append(f"| {cond} | {m.get('level')} | {', '.join(manifests[i].get('run') or '–' for i in done)} | "
-                 f"{fmt(ran, '{:.0f}')} | {fmt(list(depth.values()), '{:.1f}')} | {fmt(list(facts.values()), '{:.1f}')} | "
-                 f"{sd_runs} | {fmt(within, '{:.1f}')} | {fmt(paired, '{:+.1f}')} | "
-                 f"{mean(mean(sums[i]['tokens']) for i in done):,.0f} |")
+def condition_overview(conds, runs):
+    """Section 0: one row per condition, the success score first, then every component (two-stage means)."""
+    w = ", ".join(f"{k} {v:.2f}" for k, v in SCORE_WEIGHTS.items())
+    L = ["## 0. Per condition: success score and its parts (two-stage mean over runs)", "",
+         f"**Score** (0-100) = 100 x ({' + '.join(f'{v:.2f} x {k}' for k, v in SCORE_WEIGHTS.items())}); every part is 0-1 "
+         "per seed (facts = share of the 7 facts right, strict or with partial credit for the years; ran = code finished; "
+         "depth = funnel stages passed / 8; report = report quality). Weights in `src/metrics.py`. Cost is not part of the score.",
+         "Stage 1: mean over the seeds of a run. Stage 2: mean of the run means (every run weighs the same). "
+         "**sd runs** = spread between the run means (needs 2+ runs); **sd seeds** = mean spread inside a run. "
+         "**Δ (paired)** = every reflection run minus the base run it reflected on, averaged over the runs. "
+         "Infrastructure failures (Docker down, LLM timeout) are left out and counted.", "",
+         "| Condition | Level | Runs | Score | sd runs | sd seeds | Δ score (paired) | Facts % | Facts partial % | Ran % | Depth % | Report | Tokens / seed | Δ score per 1k extra tokens |",
+         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for cond, c in conds.items():
+        s = c["sum"]
+        names = ", ".join(runs[u]["run"] or "–" for u in c["runs"]) + (f" (+{s['infra']} infra)" if s["infra"] else "")
+        L.append(f"| {cond} | {c['level']} | {names} | **{_v(s['score'])}** | "
+                 f"{_v(s['score_sd_runs']) if len(c['runs']) > 1 else '– (1 run)'} | {_v(s['score_sd_seeds'])} | "
+                 f"{_v(s['score_delta'], '{:+.1f}')} | {_v(s['facts'])} | {_v(s['facts_partial'])} | {_v(s['ran'])} | "
+                 f"{_v(s['depth'])} | {_v(s['report'])} | {_v(s['tokens'], '{:,.0f}')} | {_v(s['score_per_1k_tokens'], '{:+.2f}')} |")
+    L += ["", "### 0b. Score of every run (stage 1)", "",
+          "| Run | Level | Base run | Score ± sd seeds | Δ score vs. base run | " + " | ".join(COMPONENTS) + " | Transitions vs. v1 |",
+          "|---|---|---|---|---|" + "---|" * len(COMPONENTS) + "---|"]
+    for uid, x in runs.items():
+        s = x["sum"]
+        trans = ", ".join(f"{k} {v}" for k, v in sorted((s["transitions"] or {}).items())) or "–"
+        L.append(f"| {uid} | {x['level']} | {x['base'] or '–'} | {_v(s['score'])} ± {_v(s['score_sd'])} | "
+                 f"{_v((s.get('delta') or {}).get('score'), '{:+.1f}')} | " + " | ".join(_v(s[k]) for k in COMPONENTS)
+                 + f" | {trans} |")
     return L
 
 
-def write_performance_log(manifests, rows):
+def figures_section(paths):
+    if not paths:
+        return []
+    L = ["", "## Figures", "", "Built by `python analyze.py` into `results/figures/` (bar = mean of the runs, dot = one run).", ""]
+    for p in paths:
+        rel = Path(p).relative_to(config.ROOT).as_posix()
+        L += [f"![{Path(p).stem}]({rel})", ""]
+    return L
+
+
+def write_performance_log(manifests, rows, figure_paths=()):
     ids = sorted((i for i, m in manifests.items() if m.get("status") != "legacy" and not i.startswith("L")),
                  key=lambda i: manifests[i].get("started") or "")
     sums = {i: experiment_summary(i, manifests[i], rows) for i in ids}
@@ -424,7 +474,9 @@ def write_performance_log(manifests, rows):
          "`ground_truth.json`. **Δ** = difference of the mean against the reference experiment named in the cell.", "",
          "Shims = runner helpers (`SHIM` in `src/runner.py`: `display`, numpy-safe JSON).", "",
          "Funnel stages: " + " → ".join(f"`{k}`" for k in FUNNEL), ""]
-    L += condition_overview(ids, manifests, sums)
+    runs, conds, _ = summaries({i: manifests[i] for i in ids}, [r for r in rows if r["experiment"] in ids])
+    L += condition_overview(conds, runs)
+    L += figures_section(figure_paths)
     L += ["", "## 1. Overview (one row per run)", "",
          f"| Run | Level | What changed | Ran | Depth (0-{n_stage}) | Δ depth | Crash at | Facts % | Δ facts | Tokens / seed | LLM s / seed |",
          "|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -669,7 +721,13 @@ if __name__ == "__main__":
         raise SystemExit(f"No results found in {config.EXPERIMENTS_DIR}")
     print(f"{len(rows)} versions from {len(manifests)} experiments -> {write_csv(rows)}")
 
-    print(f"performance log -> {write_performance_log(manifests, rows)}")
+    from src.figures import build_all
+    ids = {i for i, m in manifests.items() if m.get("status") != "legacy" and not i.startswith("L")}
+    runs, conds, order = summaries({i: manifests[i] for i in ids}, [r for r in rows if r["experiment"] in ids])
+    print(f"run and condition tables -> {', '.join(str(p) for p in write_summary_csvs(runs, conds))}")
+    figure_paths = build_all(RESULTS_DIR / "figures", conds, runs, order)
+    print(f"{len(figure_paths)} figures -> {RESULTS_DIR / 'figures'}")
+    print(f"performance log -> {write_performance_log(manifests, rows, figure_paths)}")
     if args.details:
         print_details(rows)
 

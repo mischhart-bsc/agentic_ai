@@ -97,11 +97,26 @@ def test_two_stage_means():
             manifests, rows = analyze.collect()
             assert set(manifests) == {"B1_t/vanessa_1", "B1_t/jan_1", "R1_t/vanessa_1"} and len(rows) == 6
             assert {r["person"] for r in rows} == {"vanessa", "jan"}
+            runs, conds, order = analyze.summaries(manifests, rows)
+            b1, r1 = conds["B1_t"]["sum"], conds["R1_t"]["sum"]
+            # facts: run means 30 and 60 -> 45; spread between the runs 15; mean spread inside a run (10 + 0) / 2 = 5
+            assert (b1["facts"], b1["facts_sd_runs"], b1["facts_sd_seeds"]) == (45.0, 15.0, 5.0), b1
+            # paired: R1 (50) minus ITS base run vanessa_1 (30) = +20, not minus the B1 mean of 45
+            assert r1["facts"] == 50.0 and r1["facts_delta"] == 20.0, r1
+            # the score of a condition is the mean of the run scores (stage 2), each the mean over its seeds (stage 1)
+            run_scores = [runs[u]["sum"]["score"] for u in conds["B1_t"]["runs"]]
+            assert b1["score"] == round(sum(run_scores) / len(run_scores), 2)
+            assert order == ["B1_t", "R1_t"] and conds["R1_t"]["base_condition"] == "B1_t"
+
             text = analyze.write_performance_log(manifests, rows).read_text(encoding="utf-8")
-            b1 = next(l for l in text.splitlines() if l.startswith("| B1_t |"))
-            r1 = next(l for l in text.splitlines() if l.startswith("| R1_t |"))
-            assert "| 45.0 | 15.0 | 5.0 | – |" in b1, b1
-            assert "| 50.0 | – (1 run) | 0.0 | +20.0 |" in r1, r1
+            row = next(l for l in text.splitlines() if l.startswith("| B1_t |"))
+            assert f"**{b1['score']:.1f}**" in row and "| 45.0 |" in row, row
+            assert "| R1_t/vanessa_1 | 2a | B1_t/vanessa_1 |" in text        # section 0b: one row per run
+
+            # the two summary tables
+            p_runs, p_conds = analyze.write_summary_csvs(runs, conds)
+            assert len(p_runs.read_text(encoding="utf-8").splitlines()) == 1 + 3
+            assert len(p_conds.read_text(encoding="utf-8").splitlines()) == 1 + 2
 
             # a comparison table per base run; the file name has no slash
             levels, seeds, table = analyze.comparison("B1_t/vanessa_1", manifests, rows)
