@@ -79,9 +79,12 @@ if __name__ == "__main__":
     template = load_prompt(args.prompt)
     prompt, schema = build_prompt(args.schema, template)
     prompts = {"generate": template, **({"schema": schema} if schema else {})}
-    exp = Experiment(args.exp, "baseline", prompts, parse_seeds(args.seeds),
-                     data_context="schema" if args.schema else "blind", runner_shims=args.shims,
-                     change=args.change, note=args.note, new_run=args.repeat)
+    try:
+        exp = Experiment(args.exp, "baseline", prompts, parse_seeds(args.seeds),
+                         data_context="schema" if args.schema else "blind", runner_shims=args.shims,
+                         change=args.change, note=args.note, new_run=args.repeat)
+    except ValueError as e:              # same condition id with different conditions: a refusal, not a crash
+        raise SystemExit(str(e))
 
     print(f"Experiment {exp.id}: seeds {exp.seeds}")
     for seed in exp.seeds:

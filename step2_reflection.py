@@ -96,10 +96,13 @@ if __name__ == "__main__":
         raise SystemExit(f"Seeds {missing} are not in the base run {base_id}")
 
     prompts = {"critique": CRITIQUE, "revise": REVISE, **prompt_texts(args.level)}
-    exp = Experiment(args.exp, args.level, prompts, seeds, base=base_id,
-                     data_context=base["data_context"], runner_shims=base.get("runner_shims", False),
-                     change=args.change, note=args.note,
-                     new_run=args.repeat)
+    try:
+        exp = Experiment(args.exp, args.level, prompts, seeds, base=base_id,
+                         data_context=base["data_context"], runner_shims=base.get("runner_shims", False),
+                         change=args.change, note=args.note,
+                         new_run=args.repeat)
+    except ValueError as e:              # same condition id with different conditions: a refusal, not a crash
+        raise SystemExit(str(e))
 
     print(f"Experiment {exp.id}: level {args.level} on {base_id}, seeds {exp.seeds}")
     for seed in exp.seeds:
