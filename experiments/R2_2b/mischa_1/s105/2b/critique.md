@@ -1,0 +1,11 @@
+- The code fails due to a TypeError when trying to access `len(busiest_month_idx)` on a numpy int32 object, indicating a critical error in the logic for extracting the busiest month.
+- The variable `busiest_month_idx` is derived from `all_monthly.idxmax()`, which returns a pandas index label (e.g., '02'), but the code incorrectly assumes it's a string with length, leading to a type error.
+- The code does not properly handle the case where the month is stored as a string or integer; it should validate and convert it correctly before slicing.
+- The output is empty because no print statements were executed (due to the crash), violating the requirement to print a short report to stdout.
+- No plots were saved because the execution failed before reaching the save commands, violating the requirement to save every plot as PNG.
+- The final RESULTS_JSON line is never printed due to the crash, violating the requirement to print it on a single line.
+- The "strong_share_increasing" logic is built on years 2022–2025, but the data may not have full coverage for those years, and the code does not validate the existence of those years in the dataset.
+- The variable `pct_strong_per_year` is derived from a groupby with 'year' but may not have entries for all years between 2022 and 2025, causing potential KeyError or invalid values in the final JSON.
+- The code assumes that all years from 2021 to 2026 are present in the data, but the file may only contain data from 2021 to 2025 or not cover the full period, leading to incorrect or missing results.
+- The final JSON output is not produced due to the crash, and even if the code ran, it would not correctly convert all values to plain Python types (e.g., using `dict` instead of `to_dict()` may not preserve proper types).
+- The code does not verify if the data actually spans from 2021 to 2026, which could result in invalid year ranges or missing data.

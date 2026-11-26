@@ -1,0 +1,20 @@
+- The research question asks for the evolution of the monthly number of flares from February 2021 to February 2026, but the code only uses the start_UTC column to extract year and month, and the data range is not verified to span exactly 2021–2026. There is no validation that the dataset actually covers this full range.  
+- The code assumes that all rows are valid and within the desired date range, but no filtering or range check is performed to ensure that only data from February 2021 to February 2026 is included.  
+- The definition of "strong" flares is correct (GOES class starts with M or X), but the column `goes_estimated_mean_class` is of type str, and the code uses `.str.startswith('M') | .str.startswith('X')`, which is valid, but only if the values are strings like "M4", "X5" — if inconsistent formatting exists (e.g., "M", "X1"), this may cause errors or misclassification.  
+- The variable `pct_strong_per_year` is computed correctly, but it is based on the entire dataset, and the years 2022–2025 are used for the strong share trend, yet the dataset may not have actual data for all years in that range. The code does not validate if any years in 2022–2025 are missing.  
+- The variable `strong_share_increasing` uses `pct_strong_values[i] < pct_strong_values[i+1]` for years 2022–2025, but if any year has no data (e.g., zero flares), the percentage will be NaN or 0, and the logic will fail or produce false positives.  
+- The code does not check if the `goes_estimated_mean_class` column contains valid values — if it is missing or malformed, the `.str.startswith(...)` will raise an error.  
+- The output `RESULTS_JSON` includes a key "pct_strong_per_year" with values as floats, but the original requirement says to convert all values and keys to plain Python types — this is satisfied.  
+- The code saves plots as PNG, which is correct per requirement.  
+- The report is long and includes unsupported claims (e.g., "the highest monthly count occurred in February 2026") — this is not computed or validated, and thus is not based on actual data.  
+- There is no handling of missing or invalid data (e.g., null, NaN) in the GOES class or flare start/end times — the code assumes all rows are valid.  
+- The code uses `monthly_flares.sum(axis=0)` which gives total flares per month across years, and then finds the index with max, but it does not account for whether the data is missing in certain years — the result may be incorrect if data gaps exist.  
+- The final "strong_share_increasing" flag is computed only on years 2022–2025, but the dataset may not contain any data for those years, leading to invalid or misleading conclusions.  
+- The report includes claims not supported by the data (e.g., "The highest monthly count occurred in February 2026") — this is not derived from any computation or validation.  
+- The code does not verify that the `start_UTC` is actually within the 2021–2026 range; it may include data from earlier or later years.  
+- The `monthly_flares` creation uses `.unstack()` which may not preserve correct order or index, and the `reindex(months)` step is correct, but the month labels are not in YYYY-MM format — they are in 01–12, which is not a valid "YYYY-MM" string.  
+- The `busiest_month` is derived from `all_monthly.idxmax()` which returns a string like "02", which is not formatted as "YYYY-MM" — it should be "2021-02" or "2026-02", but the code does not include the year, violating the requirement.  
+- The `year` in `df['year']` is extracted from `start_UTC`, but the data may not have valid date entries — no error handling or validation is present.  
+- The `pct_strong_per_year` dictionary is built from the entire data, but the data may be incomplete or sparse, leading to incorrect percentages.  
+
+In summary: the code is structurally correct in design but contains critical flaws in data validation, missing error handling, and incorrect outputs that violate the requirements. The final result is not reliable or fully compliant.

@@ -1,0 +1,8 @@
+- The code fails during execution due to a malformed string formatting in the `month_label` assignment: `f"{x:02d}"` is applied to a string column, but `str` objects cannot use format code 'd' in this context. This triggers a `ValueError` because `str` does not support integer formatting.
+- The line `monthly_counts['month_label'] = monthly_counts['year'].astype(str) + '-' + monthly_counts['month'].astype(str).apply(lambda x: f"{x:02d}")` is invalid because `.astype(str)` on a column of integers produces strings, but then applying `f"{x:02d}"` to a string results in a syntax error or runtime error — the format code 'd' is only valid for integers, not strings.
+- The code does not correctly extract or process the monthly flare data, leading to incorrect or missing results for the monthly evolution.
+- The "strong share increasing" logic is flawed: it checks only if the percentage drops or stays the same, but the data may not be properly aligned across years (e.g., missing year 2022–2025 coverage), and the loop may not handle missing years correctly.
+- The output section prints nothing to stdout, violating the requirement to print a short report.
+- No plots are saved because the execution fails before reaching save commands.
+- The final RESULTS_JSON line is never printed because the script terminates early.
+- The code does not correctly handle data types or formatting for string concatenation in pandas, and relies on unsafe or invalid operations.

@@ -16,6 +16,6 @@
   "ollama_url": "http://localhost:11434/v1",
   "docker_image": "agai-sandbox",
   "started": "2026-11-25T17:14:29",
-  "finished": null,
-  "status": "running"
+  "finished": "2026-11-26T01:13:45",
+  "status": "complete"
 }

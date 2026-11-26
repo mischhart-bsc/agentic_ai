@@ -1,20 +1,47 @@
-- The data starts in February 2021 and goes up to February 2026, but the code only analyzes from 2021 to 2025 (as per the flares_per_year dictionary), and does not include 2026 — this violates the requirement to analyze up to and including February 2026.
-- The research question asks for the monthly number of flares from February 2021 to February 2026, but the code aggregates by year and month only for years 2021–2025, missing the full 2026 period.
-- The "busiest_month" is determined from all months across years, but the data only includes flares from 2021 to 2025, and the busiest month is incorrectly inferred as "February 2025" when the data does not extend to 2026.
-- The calculation of "pct_strong_per_year" uses only years 2021–2025, but the requirement is to evaluate changes from 2022 to 2025 — the code includes 2021 but does not properly handle the 2022–2025 range or validate that the share increases across those years.
-- The "strong_share_increasing" flag is computed based on a list of years (2021–2025), but the requirement is specifically for the years 2022–2025. The code fails to correctly evaluate the trend only over these years.
-- The variable `years_list` is defined from `strong_per_year.keys()`, which may include 2021, and thus the comparison starts from 2021, violating the scope of the required analysis (only 2022–2025).
-- The code does not validate that the data actually contains entries for all years from 2021 to 2026 — if there are no flares in 2026, the monthly counts would be zero, and the analysis would be incomplete.
-- The `goes_estimated_mean_class` column is assumed to be strings, but no validation is performed for missing or malformed values, and the `str.startswith('M') | str.startswith('X')` could fail if the column is null or not string.
-- The creation of `month_label` uses `f"{year}-{month:02d}"`, which is correct, but the plotting logic does not properly handle missing months (e.g., missing Jan in a year) — the plot shows all months, which may misrepresent data.
-- The `flares_per_year` dictionary is built from `df.groupby('year').size()`, which may not include 2026 — thus, the final result is incomplete and inaccurate.
-- The code does not check if the `goes_estimated_mean_class` column has any missing values, and thus the `is_strong` flag could produce incorrect results due to NaNs.
-- The `pct_strong_per_year` calculation is done with `strong / flares_per_year.get(year, 0)`, which may result in division by zero if there are no flares in a year — no error protection is in place.
-- The final JSON output uses `results_json` with keys that are not in plain Python types — the `pct_strong_per_year` is a dict, which is fine, but the structure is correct only if the years are properly filtered.
-- The requirement says "use all rows of the file" — the code does, but it fails to include data from 2026.
-- The plot saves to /outputs/monthly_flare_counts.png, which is correct, but the data used to generate it is incomplete (only 2021–2025), violating the scope of the analysis.
-- The report text includes claims about "a growing intensity" and "a trend" without statistical support — it is descriptive but not backed by actual trend analysis.
-- The final `RESULTS_JSON` includes a key "strong_share_increasing" that is computed over 2021–2025, but the requirement is only for 2022–2025 — this is a direct violation.
-- The code does not filter or validate the years to only include 2022–2025 for the strong flare trend analysis — it incorrectly uses 2021 as a baseline.
+- The data file path "/data/stix_flarelist.csv" is used, but the script does not verify if the file exists or is accessible, which could cause a FileNotFoundError at runtime.
 
-In summary: the code fails to meet the core requirement of analyzing the period from February 2021 to February 2026, and particularly fails to evaluate the strong flare share trend only from 2022 to 2025. It includes invalid data years and computes incorrect trends. It also lacks validation and error handling for missing or malformed data.
+- The research question asks for the monthly number of flares from February 2021 to February 2026, but the script only considers start_UTC and extracts year/month from that. It does not filter data to only include months from February 2021 onward — it includes all months in the full range (e.g., January 2021), which violates the research question.
+
+- The script incorrectly computes "busiest_month" and "busiest_month_count" by sorting all months (across years) by total count, but it does not restrict to only months from February onward. This makes the result invalid for the research question.
+
+- The variable "pct_strong_per_year" is computed correctly, but it uses GOES mean class, and the definition of "strong" is correctly applied (starts with M or X). However, the script does not validate that "goes_estimated_mean_class" contains only valid values (e.g., B, C, M, X), and may include invalid or malformed entries, leading to incorrect strong flare classification.
+
+- The script does not handle missing values in the 'goes_estimated_mean_class' column. A missing or NaN value could cause a runtime error or incorrect classification.
+
+- The "strong_share_increasing" flag is computed over years 2021–2025, but the research question only spans from 2021 to 2025 (inclusive). The script correctly uses years 2021–2025, but it only evaluates from 2021 to 2025 — the years 2022–2025 are required. The script does not verify that data exists for all years in 2022–2025, and if any year has zero flares, the percentage would be undefined or invalid.
+
+- The script does not validate that the 'goes_estimated_mean_class' column is non-null or correctly formatted. Without this, the 'str.startswith' would fail or result in incorrect boolean flags.
+
+- The plot uses the full year range (2021–2025), but the research question only asks for the evolution from February 2021 to February 2026. The plot and analysis should only cover this specific period, not the entire year.
+
+- The script does not explicitly filter or subset the data for the period of interest (from February 2021 onward). This is a major deviation from the research question.
+
+- The script assumes all years from 2021 to 2025 have data, but if a year has no flares, the percentage of strong flares would be undefined, and the trend analysis would be invalid.
+
+- The final JSON output includes "n_months" as 12*5=60, which is correct in number of months (5 years × 12), but the research question only spans 6 years (2021 to 2026 inclusive), so this is actually 6 years, not 5 — the value is incorrect.
+
+- The script does not provide any handling or validation of data types in the 'goes_estimated_mean_class' field, and could fail on invalid strings or missing values.
+
+- The script does not check for validity of the 'start_UTC' parsing — if a timestamp is malformed, it would cause a parsing error.
+
+- The plot title and x-axis labels are correct, but the data shown is not limited to February and beyond, violating the research scope.
+
+- The function to determine if the strong share is increasing compares only the years 2021–2025, but the question specifies "from each year to the next across the full calendar years 2022–2025" — so the analysis must only evaluate 2022 to 2025, not all years. The current code includes 2021 and does a full trend from 2021 to 2025, which is incorrect.
+
+- The script does not validate that the 'year' column is correctly populated from the start_UTC parsing — if parsing fails, the year will be NaN or incorrect.
+
+- The script does not validate if the 'goes_estimated_mean_class' has valid values (e.g., only B, C, M, X), and may misclassify or skip valid entries.
+
+- The script does not check if any of the years 2022–2025 are missing data, which would cause incorrect trend analysis.
+
+- The final JSON output uses "pct_strong_per_year" with percentages, but does not ensure that the denominator (flares per year) is not zero — if a year has zero flares, the percentage is undefined and should be handled.
+
+- The script does not include any error handling for parsing, missing data, or invalid values — it would crash on malformed data.
+
+- The script does not validate or explain whether the "strong" flares are based on actual GOES class values or if there's any data quality issue.
+
+- The script assumes that all the 'goes_estimated_mean_class' values are strings starting with M or X — but if values are invalid or missing, the classification would be incorrect.
+
+- The script does not perform any statistical validation or outlier checks — it simply counts and classifies, which may not reflect real solar activity trends.
+
+- The script does not include a check for whether the data covers February 2021 to February 2026 — it uses the full range of years and months, which is invalid.

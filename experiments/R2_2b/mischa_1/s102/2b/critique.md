@@ -1,0 +1,9 @@
+- The code contains a critical error in the lambda function used with `apply`: `f"{2021 + (monthly_flares['year'] - 2021):04d}-{x:02d}"` attempts to use a column reference (`monthly_flares['year']`) within a lambda that operates on a row of the DataFrame, which is not accessible in that context. This causes a `TypeError` because `monthly_flares['year']` is a Series, and inside `apply`, it is not bound to the current row, leading to a format string error.
+- The `monthly_flares['month_year']` assignment is invalid and will crash during execution due to incorrect access of the Series column in a lambda.
+- The code does not correctly compute or store the yearly flare counts or strong flare percentages; it relies on improperly constructed data structures that are not properly aggregated or indexed.
+- The `pct_strong_per_year` dictionary is built using a loop that references years beyond the range of the data (e.g., 2025), but the data may not contain flares for all years from 2022 to 2025, leading to potential missing keys and incorrect percentages.
+- The `strong_share_increasing` logic is flawed because it compares years in a list that may not exist in the dataset (e.g., 2022–2025), and it does not validate whether each year has at least one flare.
+- The report is not printed at all because the code fails early, and no output is generated.
+- No plots are saved because the code fails before reaching the plotting section.
+- The final JSON output is not printed, and no `RESULTS_JSON` line is generated due to the crash.
+- The script fails to meet the requirement to save plots and produce a valid JSON output, and it does not produce any output at all in the required format.

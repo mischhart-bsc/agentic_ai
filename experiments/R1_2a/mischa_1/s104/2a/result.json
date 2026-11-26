@@ -1,0 +1,127 @@
+{
+  "experiment": "R1_2a/mischa_1",
+  "seed": 104,
+  "version": "2a",
+  "parent": "B4_strong/mischa_1/s104/v1",
+  "llm_error": "TimeoutError",
+  "code_found": false,
+  "exit_code": null,
+  "error_type": "TimeoutError",
+  "error_category": "llm_timeout",
+  "error_message": "TimeoutError",
+  "error_line": null,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "credits": {
+    "n_months": 0.0,
+    "busiest_month": 0.0,
+    "busiest_month_count": 0.0,
+    "flares_per_year": 0.0,
+    "n_strong": 0.0,
+    "pct_strong_per_year": 0.0,
+    "strong_share_increasing": 0.0
+  },
+  "fact_score_partial": 0.0,
+  "report_precision": null,
+  "n_plots": 0,
+  "cost": {
+    "llm_calls": 2,
+    "prompt_tokens": 2887,
+    "completion_tokens": 2392,
+    "llm_seconds": 996.4,
+    "exec_seconds": 0,
+    "truncated": true
+  },
+  "funnel": {
+    "answered": false,
+    "code_found": false,
+    "ran": false,
+    "json_found": false,
+    "json_strict": false,
+    "keys_complete": false,
+    "any_fact": false,
+    "all_facts": false
+  },
+  "funnel_depth": 0,
+  "report": {
+    "overall": 0.0,
+    "dimensions": {
+      "execution": 0.0,
+      "completeness": 0.0,
+      "correctness": 0.0,
+      "method": null,
+      "plots": 0.0
+    },
+    "flags": [
+      "answer cut off (max_tokens)",
+      "no code block",
+      "RESULTS_JSON missing/unreadable",
+      "no report text",
+      "no plots"
+    ],
+    "details": {
+      "execution": {
+        "code_found": false,
+        "progress": 0.0
+      },
+      "completeness": {
+        "json_present": false,
+        "json_strict": false,
+        "json_keys": 0.0,
+        "n_sentences": 0,
+        "length_ok": 0.0,
+        "topics": {
+          "monthly_evolution": false,
+          "busiest_month": false,
+          "yearly_counts": false,
+          "strong_share": false,
+          "trend_answer": false,
+          "data_caveat": false
+        },
+        "topic_coverage": 0.0,
+        "n_plots": 0,
+        "plots_present": 0.0
+      },
+      "correctness": {
+        "checks": {
+          "n_months": false,
+          "busiest_month": false,
+          "busiest_month_count": false,
+          "flares_per_year": false,
+          "n_strong": false,
+          "pct_strong_per_year": false,
+          "strong_share_increasing": false
+        },
+        "fact_score": 0.0,
+        "text_numbers": 0,
+        "text_precision": null,
+        "text_json_consistency": null,
+        "claims": {},
+        "claims_score": null,
+        "text_facts": {
+          "n_months": null,
+          "busiest_month": null,
+          "busiest_month_count": null,
+          "n_strong": null,
+          "strong_share_increasing": null
+        },
+        "text_fact_score": null
+      },
+      "method": {},
+      "plots": {
+        "n_plots": 0,
+        "files": []
+      }
+    }
+  }
+}
