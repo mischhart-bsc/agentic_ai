@@ -1,0 +1,13 @@
+- The code fails to parse the date '2026-02-29' because February does not have 29 days, which violates the input data's validity—this is a concrete error in date parsing that would cause the script to crash during execution.
+- The requirement to analyze data from February 2021 to February 2026 is incorrect when applied as a strict end date; February 2026 is a valid month, but the last day of February 2026 is 29th, which is invalid, leading to a parsing error.
+- The script does not validate or sanitize date strings before parsing—no error handling is implemented for malformed or invalid dates, making it brittle and non-functional in real-world data.
+- The code assumes all entries in `start_UTC` are valid dates in the format 'YYYY-MM-DDTHH:MM:SS.SSS', but the error shows it fails on a date that should not be included (since 2026-02-29 doesn't exist), indicating a flawed boundary condition.
+- The script does not account for the fact that the dataset may not contain any flares beyond February 2026, so the upper bound should be inclusive of the last valid day of each month (i.e., 2026-02-28), not 2026-02-29.
+- The code does not produce any output (no print statements appear), and the final RESULTS_JSON line is not printed—violating the requirement to print findings to stdout and the JSON.
+- The plots are not saved (0 files written), violating the requirement to save every plot as PNG into /outputs/.
+- The independent check confirms that no values were computed or reported, meaning all 7 requested values are missing—this indicates the code failed to execute correctly due to the date parsing error and lack of error handling.
+- There is no validation of the `goes_estimated_mean_class` column for values that start with 'M' or 'X'—this could lead to incorrect classification of strong flares if the data contains invalid or missing values.
+- The code does not handle missing values (NaN) in `start_UTC` or `goes_estimated_mean_class`, which could cause incorrect counts or misclassification of flares.
+- The script does not include any error handling or validation, making it vulnerable to invalid inputs and failing silently or crashing on edge cases.
+
+In summary: the code fails due to invalid date parsing, lacks date validation, produces no output, and fails to compute or report any of the required values. It fails to meet the fundamental requirements of correctness, robustness, and output.

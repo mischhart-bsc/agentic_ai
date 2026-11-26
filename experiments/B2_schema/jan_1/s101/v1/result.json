@@ -1,0 +1,153 @@
+{
+  "experiment": "B2_schema/jan_1",
+  "seed": 101,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "other:TypeError",
+  "error_message": "TypeError: int() argument must be a string, a bytes-like object or a real number, not 'Series'",
+  "error_line": 78,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "credits": {
+    "n_months": 0.0,
+    "busiest_month": 0.0,
+    "busiest_month_count": 0.0,
+    "flares_per_year": 0.0,
+    "n_strong": 0.0,
+    "pct_strong_per_year": 0.0,
+    "strong_share_increasing": 0.0
+  },
+  "fact_score_partial": 0.0,
+  "report_precision": 0.0,
+  "n_plots": 1,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1347,
+    "completion_tokens": 1196,
+    "llm_seconds": 45.9,
+    "exec_seconds": 1.0,
+    "truncated": false
+  },
+  "funnel": {
+    "answered": true,
+    "code_found": true,
+    "ran": false,
+    "json_found": false,
+    "json_strict": false,
+    "keys_complete": false,
+    "any_fact": false,
+    "all_facts": false
+  },
+  "funnel_depth": 2,
+  "report": {
+    "overall": 0.393,
+    "dimensions": {
+      "execution": 0.459,
+      "completeness": 0.467,
+      "correctness": 0.0,
+      "method": 0.714,
+      "plots": 1.0
+    },
+    "flags": [
+      "RESULTS_JSON missing/unreadable",
+      "numbers in the report text do not match the data",
+      "falsche Aussage im Text: busiest_month",
+      "falsche Aussage im Text: strong_share_trend",
+      "no GOES column used",
+      "class letter not evaluated cleanly (e.g. contains instead of str[0])",
+      "report text hard-coded (not generated from results)"
+    ],
+    "details": {
+      "execution": {
+        "code_found": true,
+        "progress": 0.918
+      },
+      "completeness": {
+        "json_present": false,
+        "json_strict": false,
+        "json_keys": 0.0,
+        "n_sentences": 10,
+        "length_ok": 1.0,
+        "topics": {
+          "monthly_evolution": true,
+          "busiest_month": true,
+          "yearly_counts": true,
+          "strong_share": true,
+          "trend_answer": true,
+          "data_caveat": false
+        },
+        "topic_coverage": 0.833,
+        "n_plots": 1,
+        "plots_present": 0.5
+      },
+      "correctness": {
+        "checks": {
+          "n_months": false,
+          "busiest_month": false,
+          "busiest_month_count": false,
+          "flares_per_year": false,
+          "n_strong": false,
+          "pct_strong_per_year": false,
+          "strong_share_increasing": false
+        },
+        "fact_score": 0.0,
+        "text_numbers": 1,
+        "text_precision": 0.0,
+        "text_json_consistency": null,
+        "claimed_busiest_month": "2021-02",
+        "claimed_strong_increase": true,
+        "claims": {
+          "busiest_month": false,
+          "strong_share_trend": false
+        },
+        "claims_score": 0.0,
+        "text_facts": {
+          "n_months": null,
+          "busiest_month": false,
+          "busiest_month_count": null,
+          "n_strong": null,
+          "strong_share_increasing": false
+        },
+        "text_fact_score": 0.0
+      },
+      "method": {
+        "time_column": 1.0,
+        "goes_column": 0.0,
+        "class_letter": 0.0,
+        "no_misparse": 1.0,
+        "full_period": 1.0,
+        "trend_full_years": 1.0,
+        "dynamic_report": 0.0,
+        "errors_coerce": false,
+        "pct_matches_obs_column": false
+      },
+      "plots": {
+        "n_plots": 1,
+        "files": [
+          {
+            "name": "monthly_flare_count.png",
+            "bytes": 47372,
+            "std": 0.1648,
+            "ok": true
+          }
+        ],
+        "valid_ratio": 1.0,
+        "label_ratio": 1.0
+      }
+    }
+  }
+}

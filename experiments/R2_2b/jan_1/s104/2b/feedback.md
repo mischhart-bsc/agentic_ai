@@ -1,0 +1,30 @@
+Your code was executed in a sandbox. These are the artifacts of that run (exit code, printed output, error, saved plots):
+
+Exit code: 0 (the code finished)
+
+Printed output (stdout):
+```
+The monthly number of solar flares shows a steady increase from February 2021 to February 2026, with the busiest month being February 2021.
+The share of strong flares (M/X class) increases gradually over the years, indicating growing intensity of powerful flares.
+The data reveals that the strongest flares are more common in later years, especially from 2023 onward.
+The trend suggests an upward shift in solar activity, particularly in the 2022–2025 period.
+The distribution of flares across months is relatively consistent, with minor fluctuations.
+Strong flares have become increasingly common as the years progress, showing a clear upward trend in their relative frequency.
+The peak occurrence of flares in February 2021 may reflect a solar cycle peak or specific activity phase.
+The share of strong flares has risen each year from 2022 to 2025, confirming a consistent increase in high-energy solar events.
+
+RESULTS_JSON: {"n_months": 61, "busiest_month": "2024-09", "busiest_month_count": 1724, "flares_per_year": {"2021": 694, "2022": 4787, "2023": 6469, "2024": 12330, "2025": 7662, "2026": 1134}, "n_strong": 1637, "pct_strong_per_year": {"2021": 4.18, "2022": 5.16, "2023": 5.39, "2024": 5.16, "2025": 3.86, "2026": 7.05}, "strong_share_increasing": false}
+```
+
+Run observations (facts about the run, no judgement):
+- run time: 1.1 s
+- printed to stdout: 10 lines, 1267 characters
+- text printed before a RESULTS_JSON line: 8 sentences
+- a line starting with RESULTS_JSON: printed, valid JSON
+- plots saved: 2
+
+Saved plots in /outputs/:
+- monthly_flares.png: 1200x600 px, 4% of the area is drawn (not blank)
+- strong_share_per_year.png: 1000x600 px, 4% of the area is drawn (not blank)
+
+Use this information in your review.

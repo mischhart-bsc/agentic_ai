@@ -1,0 +1,21 @@
+{
+  "person": "jan",
+  "base_run": "B4_strong/jan_1",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "model_digest": "8b939f12b0f9",
+  "llm_max_seconds": 600,
+  "git_commit": "2d8effa",
+  "git_dirty": false,
+  "machine": "MacBook-Air-von-Jan.local (Darwin, 10 CPUs)",
+  "ollama_url": "http://localhost:11434/v1",
+  "docker_image": "agai-sandbox",
+  "started": "2026-11-26T19:22:00",
+  "finished": "2026-11-26T19:29:42",
+  "status": "complete"
+}

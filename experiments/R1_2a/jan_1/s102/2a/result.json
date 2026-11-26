@@ -1,0 +1,157 @@
+{
+  "experiment": "R1_2a/jan_1",
+  "seed": 102,
+  "version": "2a",
+  "parent": "B4_strong/jan_1/s102/v1",
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 0,
+  "error_type": null,
+  "error_category": null,
+  "error_message": null,
+  "error_line": null,
+  "results_json_found": true,
+  "results_json_strict": true,
+  "checks": {
+    "n_months": true,
+    "busiest_month": true,
+    "busiest_month_count": true,
+    "flares_per_year": true,
+    "n_strong": true,
+    "pct_strong_per_year": true,
+    "strong_share_increasing": true
+  },
+  "fact_score": 1.0,
+  "credits": {
+    "n_months": 1.0,
+    "busiest_month": 1.0,
+    "busiest_month_count": 1.0,
+    "flares_per_year": 1.0,
+    "n_strong": 1.0,
+    "pct_strong_per_year": 1.0,
+    "strong_share_increasing": 1.0
+  },
+  "fact_score_partial": 1.0,
+  "report_precision": 0.0,
+  "n_plots": 2,
+  "cost": {
+    "llm_calls": 2,
+    "prompt_tokens": 7136,
+    "completion_tokens": 2840,
+    "llm_seconds": 113.2,
+    "exec_seconds": 1.3,
+    "truncated": false
+  },
+  "funnel": {
+    "answered": true,
+    "code_found": true,
+    "ran": true,
+    "json_found": true,
+    "json_strict": true,
+    "keys_complete": true,
+    "any_fact": true,
+    "all_facts": true
+  },
+  "funnel_depth": 8,
+  "report": {
+    "overall": 0.765,
+    "dimensions": {
+      "execution": 1.0,
+      "completeness": 0.933,
+      "correctness": 0.5,
+      "method": 0.714,
+      "plots": 1.0
+    },
+    "flags": [
+      "numbers in the report text do not match the data",
+      "falsche Aussage im Text: busiest_month",
+      "falsche Aussage im Text: strong_share_trend",
+      "trend not over the full years 2022-2025",
+      "report text hard-coded (not generated from results)"
+    ],
+    "details": {
+      "execution": {
+        "code_found": true,
+        "progress": 1.0
+      },
+      "completeness": {
+        "json_present": true,
+        "json_strict": true,
+        "json_keys": 1.0,
+        "n_sentences": 8,
+        "length_ok": 1.0,
+        "topics": {
+          "monthly_evolution": true,
+          "busiest_month": true,
+          "yearly_counts": false,
+          "strong_share": true,
+          "trend_answer": true,
+          "data_caveat": false
+        },
+        "topic_coverage": 0.667,
+        "n_plots": 2,
+        "plots_present": 1.0
+      },
+      "correctness": {
+        "checks": {
+          "n_months": true,
+          "busiest_month": true,
+          "busiest_month_count": true,
+          "flares_per_year": true,
+          "n_strong": true,
+          "pct_strong_per_year": true,
+          "strong_share_increasing": true
+        },
+        "fact_score": 1.0,
+        "text_numbers": 1,
+        "text_precision": 0.0,
+        "text_json_consistency": 0.0,
+        "claimed_busiest_month": "2021-02",
+        "claimed_strong_increase": true,
+        "claims": {
+          "busiest_month": false,
+          "strong_share_trend": false
+        },
+        "claims_score": 0.0,
+        "text_facts": {
+          "n_months": null,
+          "busiest_month": false,
+          "busiest_month_count": null,
+          "n_strong": null,
+          "strong_share_increasing": false
+        },
+        "text_fact_score": 0.0
+      },
+      "method": {
+        "time_column": 1.0,
+        "goes_column": 1.0,
+        "class_letter": 1.0,
+        "no_misparse": 1.0,
+        "full_period": 1.0,
+        "trend_full_years": 0.0,
+        "dynamic_report": 0.0,
+        "errors_coerce": true,
+        "pct_matches_obs_column": false
+      },
+      "plots": {
+        "n_plots": 2,
+        "files": [
+          {
+            "name": "monthly_flare_evolution.png",
+            "bytes": 68373,
+            "std": 0.12,
+            "ok": true
+          },
+          {
+            "name": "strong_flare_share_by_year.png",
+            "bytes": 39582,
+            "std": 0.097,
+            "ok": true
+          }
+        ],
+        "valid_ratio": 1.0,
+        "label_ratio": 1.0
+      }
+    }
+  }
+}

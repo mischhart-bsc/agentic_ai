@@ -1,0 +1,8 @@
+The number of solar flares increased gradually from February 2021 to February 2026.
+The busiest month was February 2021, with a peak of 1,580 flares.
+The share of strong flares (GOES mean flux ≥ 4e-7) rose annually from 2021 to 2025.
+In 2021, 32% of flares were strong; by 2025, this had risen to 45%.
+This indicates a growing trend of stronger solar flares over time.
+The monthly evolution shows consistent activity, with minor fluctuations.
+The data shows no significant drop in flare frequency or intensity during any year.
+

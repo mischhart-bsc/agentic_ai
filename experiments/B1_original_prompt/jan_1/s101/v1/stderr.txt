@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/code/code.py", line 14, in <module>
+    raise ValueError(f"Expected date column '{date_col}' not found in CSV.")
+ValueError: Expected date column 'date' not found in CSV.

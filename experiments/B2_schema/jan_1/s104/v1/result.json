@@ -1,0 +1,161 @@
+{
+  "experiment": "B2_schema/jan_1",
+  "seed": 104,
+  "version": "v1",
+  "parent": null,
+  "llm_error": null,
+  "code_found": true,
+  "exit_code": 1,
+  "error_type": "TypeError",
+  "error_category": "json_serialize",
+  "error_message": "TypeError: Object of type int64 is not JSON serializable",
+  "error_line": 115,
+  "results_json_found": false,
+  "results_json_strict": false,
+  "checks": {
+    "n_months": false,
+    "busiest_month": false,
+    "busiest_month_count": false,
+    "flares_per_year": false,
+    "n_strong": false,
+    "pct_strong_per_year": false,
+    "strong_share_increasing": false
+  },
+  "fact_score": 0.0,
+  "credits": {
+    "n_months": 0.0,
+    "busiest_month": 0.0,
+    "busiest_month_count": 0.0,
+    "flares_per_year": 0.0,
+    "n_strong": 0.0,
+    "pct_strong_per_year": 0.0,
+    "strong_share_increasing": 0.0
+  },
+  "fact_score_partial": 0.0,
+  "report_precision": 0.0,
+  "n_plots": 2,
+  "cost": {
+    "llm_calls": 1,
+    "prompt_tokens": 1347,
+    "completion_tokens": 1240,
+    "llm_seconds": 47.5,
+    "exec_seconds": 1.5,
+    "truncated": false
+  },
+  "funnel": {
+    "answered": true,
+    "code_found": true,
+    "ran": false,
+    "json_found": false,
+    "json_strict": false,
+    "keys_complete": false,
+    "any_fact": false,
+    "all_facts": false
+  },
+  "funnel_depth": 2,
+  "report": {
+    "overall": 0.369,
+    "dimensions": {
+      "execution": 0.5,
+      "completeness": 0.533,
+      "correctness": 0.0,
+      "method": 0.571,
+      "plots": 0.75
+    },
+    "flags": [
+      "RESULTS_JSON missing/unreadable",
+      "numbers in the report text do not match the data",
+      "falsche Aussage im Text: busiest_month",
+      "falsche Aussage im Text: strong_share_trend",
+      "no GOES column used",
+      "class letter not evaluated cleanly (e.g. contains instead of str[0])",
+      "time range cut off (Feb 2026 missing)",
+      "report text hard-coded (not generated from results)",
+      "Prozent-Achse 0-100 (Unterschiede unsichtbar)"
+    ],
+    "details": {
+      "execution": {
+        "code_found": true,
+        "progress": 1.0
+      },
+      "completeness": {
+        "json_present": false,
+        "json_strict": false,
+        "json_keys": 0.0,
+        "n_sentences": 6,
+        "length_ok": 1.0,
+        "topics": {
+          "monthly_evolution": true,
+          "busiest_month": true,
+          "yearly_counts": false,
+          "strong_share": true,
+          "trend_answer": true,
+          "data_caveat": false
+        },
+        "topic_coverage": 0.667,
+        "n_plots": 2,
+        "plots_present": 1.0
+      },
+      "correctness": {
+        "checks": {
+          "n_months": false,
+          "busiest_month": false,
+          "busiest_month_count": false,
+          "flares_per_year": false,
+          "n_strong": false,
+          "pct_strong_per_year": false,
+          "strong_share_increasing": false
+        },
+        "fact_score": 0.0,
+        "text_numbers": 1,
+        "text_precision": 0.0,
+        "text_json_consistency": null,
+        "claimed_busiest_month": "2025-02",
+        "claimed_strong_increase": true,
+        "claims": {
+          "busiest_month": false,
+          "strong_share_trend": false
+        },
+        "claims_score": 0.0,
+        "text_facts": {
+          "n_months": null,
+          "busiest_month": false,
+          "busiest_month_count": false,
+          "n_strong": null,
+          "strong_share_increasing": false
+        },
+        "text_fact_score": 0.0
+      },
+      "method": {
+        "time_column": 1.0,
+        "goes_column": 0.0,
+        "class_letter": 0.0,
+        "no_misparse": 1.0,
+        "full_period": 0.0,
+        "trend_full_years": 1.0,
+        "dynamic_report": 0.0,
+        "errors_coerce": true,
+        "pct_matches_obs_column": false
+      },
+      "plots": {
+        "n_plots": 2,
+        "files": [
+          {
+            "name": "monthly_flare_counts.png",
+            "bytes": 45705,
+            "std": 0.1557,
+            "ok": true
+          },
+          {
+            "name": "strong_flare_share.png",
+            "bytes": 29282,
+            "std": 0.0956,
+            "ok": true
+          }
+        ],
+        "valid_ratio": 1.0,
+        "label_ratio": 0.5
+      }
+    }
+  }
+}

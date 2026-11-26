@@ -1,0 +1,22 @@
+- The research question asks for the monthly evolution of flares from February 2021 to February 2026, but the data is loaded with only 33,076 rows and the actual date range is not verified — there is no check to ensure the data spans from Feb 2021 to Feb 2026, and it may not even include data from 2026.  
+- The code defines "strong" flares as GOES class starting with 'M' or 'X', which is correct per definition, but the `goes_estimated_mean_class` column is of type str and contains values like 'B4', 'B8', 'B6', 'M4', etc. — the code correctly checks for 'M' or 'X', but there is no validation that these values actually exist in the data.  
+- The `monthly_flares` and `monthly_strong` are created from the `start_UTC` date, but the month and year are extracted from that — however, the original data may not have full coverage for every month between Feb 2021 and Feb 2026. The aggregation is correct, but the resulting time series may have gaps or missing months.  
+- The `busiest_month` is determined by the maximum count, but the code does not verify that the data actually spans from 2021 to 2026 — if the data ends in 2023, the result will be invalid.  
+- The `strong_share_increasing` flag checks whether the percentage of strong flares increases year-by-year from 2022 to 2025, but it does so only if years 2022–2025 exist in the dataset. If the data lacks one or more years, the result will be incorrect or misleading.  
+- The `pct_strong_per_year` and `flares_per_year` dictionaries are derived from the grouped data, but they are built from raw counts — no error handling is present for missing years or zero counts.  
+- The code assumes that `yearly_flares` has entries for all years from 2022 to 2025, but if the data is incomplete, the comparison loop will fail or produce false conclusions.  
+- The plot files are saved correctly, but the actual visualization is not validated — there is no check for whether the data actually spans the required period.  
+- The final JSON output is correctly formatted with plain Python types (int, float, str, bool), but the keys and values may contain invalid or missing data (e.g., no 2026 data, missing 2022–2025 years).  
+- The report text is descriptive and meets the 5–10 sentence requirement, but it contains factual claims (e.g., "the highest share in 2025") that are not backed by data or validated — this is a critical flaw.  
+- The code does not validate that the `goes_estimated_mean_class` column contains values that start with 'M' or 'X' — it may be entirely 'B' or 'C' classes, making the "strong" definition meaningless.  
+- The code does not verify that start_UTC is actually present and valid — if there are missing or malformed timestamps, the date extraction will fail silently.  
+- The `goes_estimated_mean_class` is a string — the code uses `.str.startswith()`, which is valid, but it may not have handled NaN or empty strings, leading to incorrect filtering.  
+- The final `RESULTS_JSON` is printed correctly, but the values are based on incomplete data — if the dataset does not cover all years from 2022 to 2025, the "strong_share_increasing" result will be incorrect.  
+- The code does not include any data validation or error handling for missing values, data types, or date parsing.  
+- There is no check to ensure the dataset has at least one entry per year from 2021 to 2026.  
+- The code writes plots to /outputs, but does not verify that the directory is writable or that the files are generated.  
+- The final output assumes the data is complete and spans the full period, which is not guaranteed.  
+- The task specifies to use only pandas, numpy, and matplotlib — the code adheres to this.  
+- The code does not include any documentation or comments explaining assumptions or limitations.  
+
+Overall, the logic is sound in structure, but the actual results would be incorrect or misleading due to unverified data coverage, lack of input validation, and untested assumptions about data completeness and content.

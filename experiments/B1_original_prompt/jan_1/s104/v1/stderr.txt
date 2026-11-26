@@ -1,0 +1,4 @@
+  File "/code/code.py", line 56
+    pct_strong_per tqdm
+                   ^^^^
+SyntaxError: invalid syntax

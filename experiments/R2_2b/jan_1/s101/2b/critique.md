@@ -1,0 +1,8 @@
+- The code fails during execution due to a malformed string formatting in `f"{x:02d}"`, where `x` is a string (from `month_str`), and the format specifier `'d'` is invalid for string types, causing a `ValueError`.
+- The line `monthly_flares['month_label'] = monthly_flares['month_str'].apply(lambda x: f"{x:02d}")` attempts to format a string as if it were an integer, which is not allowed — this is a concrete, direct bug.
+- The code does not print any output to stdout, violating the requirement to "Print your findings to stdout as a short report".
+- No plots are saved to `/outputs/`, despite the requirement to "Save every plot as PNG into /outputs/".
+- The final `RESULTS_JSON` line is not printed, violating the requirement to print it exactly as specified.
+- The code structure is correct in logic and intent, but fails at runtime due to a fundamental error in string formatting.
+- The data processing logic (e.g., filtering strong flares, grouping by year/month) is sound, but the failure prevents any results from being generated or output.
+- The error occurs early in the code, before any data analysis or plotting, meaning the entire execution is aborted before even attempting to compute results or save outputs.

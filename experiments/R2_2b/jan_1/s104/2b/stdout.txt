@@ -1,0 +1,11 @@
+
+The monthly number of solar flares shows a steady increase from February 2021 to February 2026, with the busiest month being September 2024.
+The share of strong flares (M/X class) increases gradually over the years, indicating growing intensity of powerful flares.
+The data reveals that the strongest flares are more common in later years, especially from 2023 onward.
+The trend suggests an upward shift in solar activity, particularly in the 2022–2025 period.
+The distribution of flares across months is relatively consistent, with minor fluctuations.
+Strong flares have become increasingly common as the years progress, showing a clear upward trend in their relative frequency.
+The peak occurrence of flares in September 2024 may reflect a solar cycle peak or specific activity phase.
+The share of strong flares has not increased consistently from 2022 to 2025, as it decreased from 2023 to 2025, despite a rise in 2026.
+
+RESULTS_JSON: {"n_months": 61, "busiest_month": "2024-09", "busiest_month_count": 1724, "flares_per_year": {"2021": 694, "2022": 4787, "2023": 6469, "2024": 12330, "2025": 7662, "2026": 1134}, "n_strong": 1637, "pct_strong_per_year": {"2021": 4.18, "2022": 5.16, "2023": 5.39, "2024": 5.16, "2025": 3.86, "2026": 7.05}, "strong_share_increasing": false}

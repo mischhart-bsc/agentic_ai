@@ -1,0 +1,9 @@
+- The code fails due to invalid date parsing: `2026-02-29` is not a valid date (February does not have 29 days in a non-leap year), which causes a `DateParseError` when attempting to parse the end date `2026-02-29`.
+- The requirement specifies to analyze data from "February 2021 up to and including February 2026", but the code attempts to include February 2026 as an end date, which is invalid and results in a runtime error.
+- The filter condition `mask = (df['start_UTC'] >= pd.to_datetime(start_date)) & (df['start_UTC'] <= pd.to_datetime(end_date))` uses an invalid end date, breaking execution.
+- The code does not handle leap years or invalid dates correctly, violating robustness and correctness.
+- The output is empty (no printed findings or JSON), so the requirement to print findings and the RESULTS_JSON line is not fulfilled.
+- No plots are saved because the code fails before reaching the plotting section.
+- The logic for identifying "strong" flares is correct, but it is rendered useless due to the failure in data filtering.
+- The final `RESULTS_JSON` output is never printed because the entire script fails before reaching that point.
+- The implementation assumes all months have valid days, but February 2026 (non-leap year) has only 28 days, making "2026-02-29" invalid. The code should instead use "2026-02-28" or a proper end-of-year boundary.
